@@ -1,0 +1,6 @@
+flask
+flask-cors
+fastapi uvicorn 
+pymongo
+scikit-learn
+transformers 
