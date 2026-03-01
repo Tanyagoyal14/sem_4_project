@@ -1,6 +1,7 @@
-flask
-flask-cors
-fastapi uvicorn 
-pymongo
-scikit-learn
-transformers 
+fastapi==0.110.0
+uvicorn==0.29.0
+transformers==4.38.2
+torch==2.2.1
+pydantic==2.6.3
+scikit-learn==1.4.1
+numpy==1.26.4
