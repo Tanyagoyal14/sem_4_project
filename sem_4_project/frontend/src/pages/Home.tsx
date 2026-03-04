@@ -1,154 +1,131 @@
 import { useState } from "react";
-import IndustryChart from "../components/IndustryChart";
-import LoadingSpinner from "../components/LoadingSpinner";
+import IndustryPieChart from "../components/IndustryPieChart";
+import SentimentBadge from "../components/SentimentBadge";
 
-function Home() {
-  const [feedback, setFeedback] = useState("");
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+function Home(){
 
-  const analyze = async () => {
-    if (!feedback.trim()) return;
+  const [feedback,setFeedback]=useState("")
+  const [result,setResult]=useState<any>(null)
+  const [live,setLive]=useState<any[]>([])
 
-    setLoading(true);
+  const analyze=async()=>{
 
-    try {
-      const res = await fetch("http://127.0.0.1:8002/analyze-feedback", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ feedback }),
-      });
+    if(!feedback) return
 
-      const data = await res.json();
-      setResult(data);
-    } catch (error) {
-      alert("Backend not reachable");
-      console.error(error);
-    }
+    const res=await fetch("http://localhost:8002/analyze-feedback",{
 
-    setLoading(false);
-  };
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({feedback})
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200 p-10">
+    })
 
-      <div className="max-w-5xl mx-auto space-y-8">
+    const data=await res.json()
 
-        {/* Page Title */}
-        <h1 className="text-4xl font-bold text-center">
-          AI Feedback Intelligence Dashboard
-        </h1>
+    setResult(data)
 
-        {/* Feedback Input Card */}
-        <div className="bg-white/70 backdrop-blur-lg shadow-xl hover:shadow-2xl transition rounded-2xl p-6 border">
+    setLive(prev=>[
+      {text:feedback,sentiment:data.sentiment},
+      ...prev
+    ])
 
-          <h2 className="text-xl font-semibold mb-4">
-            Enter Customer Feedback
-          </h2>
+    setFeedback("")
+  }
 
-          <textarea
-            className="w-full border rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            rows={4}
-            placeholder="Example: The app crashes during payment..."
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-          />
+  return(
 
-          <button
-            onClick={analyze}
-            className="mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            Analyze Feedback
-          </button>
+    <div>
+
+      <h1 className="text-4xl font-bold text-white mb-8">
+        Live AI Feedback Dashboard
+      </h1>
+
+      {/* feedback input */}
+
+      <div className="bg-white/30 backdrop-blur-xl p-6 rounded-xl shadow-lg mb-8">
+
+        <textarea
+          className="w-full p-4 rounded-lg border"
+          rows={3}
+          placeholder="Example: The delivery was late 😡 and the app keeps crashing during payment"
+          value={feedback}
+          onChange={(e)=>setFeedback(e.target.value)}
+        />
+
+        <button
+          onClick={analyze}
+          className="mt-4 bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-lg"
+        >
+          Analyze Feedback
+        </button>
+
+      </div>
+
+      {/* result */}
+
+      {result && (
+
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+
+          <div className="bg-white/30 backdrop-blur-xl p-6 rounded-xl shadow-lg">
+
+            <h2 className="font-semibold mb-3 text-white">
+              Sentiment
+            </h2>
+
+            <SentimentBadge sentiment={result.sentiment}/>
+
+            <p className="text-white text-sm mt-2">
+              Confidence: {result.sentiment_confidence}
+            </p>
+
+          </div>
+
+          <div className="bg-white/30 backdrop-blur-xl p-6 rounded-xl shadow-lg">
+
+            <h2 className="font-semibold mb-3 text-white">
+              Industry Detection
+            </h2>
+
+            <IndustryPieChart data={result.top_industries}/>
+
+          </div>
+
         </div>
 
-        {/* Loading Spinner */}
-        {loading && <LoadingSpinner />}
+      )}
 
-        {/* Results */}
-        {result && !loading && (
-          <>
-            {/* Sentiment Card */}
-            <div className="bg-white/70 backdrop-blur-lg shadow-xl hover:shadow-2xl transition rounded-2xl p-6 border">
+      {/* live stream */}
 
-              <h2 className="text-xl font-semibold mb-2">
-                Sentiment Analysis
-              </h2>
+      <div className="bg-white/30 backdrop-blur-xl p-6 rounded-xl shadow-lg">
 
-              <p className="text-lg">
-                Sentiment:
-                <span
-                  className={`ml-2 font-bold ${
-                    result.sentiment === "POSITIVE"
-                      ? "text-green-600"
-                      : result.sentiment === "NEGATIVE"
-                      ? "text-red-600"
-                      : "text-yellow-600"
-                  }`}
-                >
-                  {result.sentiment}
-                </span>
-              </p>
+        <h2 className="text-white font-semibold mb-4">
+          Live Feedback Stream
+        </h2>
 
-              <p className="text-sm text-gray-600">
-                Confidence: {result.sentiment_confidence}
-              </p>
+        <div className="space-y-3 max-h-60 overflow-y-auto">
+
+          {live.map((item,index)=>(
+            <div
+              key={index}
+              className="bg-white p-3 rounded-lg flex justify-between"
+            >
+
+              <span>{item.text}</span>
+
+              <SentimentBadge sentiment={item.sentiment}/>
+
             </div>
+          ))}
 
-            {/* Industry Confidence Chart */}
-            <div className="bg-white/70 backdrop-blur-lg shadow-xl hover:shadow-2xl transition rounded-2xl p-6 border">
+        </div>
 
-              <h2 className="text-xl font-semibold mb-4">
-                Industry Confidence
-              </h2>
-
-              <IndustryChart data={result.top_industries} />
-            </div>
-
-            {/* Recommendations */}
-            <div className="bg-white/70 backdrop-blur-lg shadow-xl hover:shadow-2xl transition rounded-2xl p-6 border">
-
-              <h2 className="text-xl font-semibold mb-4">
-                AI Recommendations
-              </h2>
-
-              <div className="space-y-3">
-                {result.recommendations.map((rec: any, index: number) => (
-                  <div
-                    key={index}
-                    className="p-3 bg-gray-50 rounded-lg border"
-                  >
-                    <p className="font-medium">{rec.industry}</p>
-                    <p className="text-sm text-gray-600">
-                      {rec.recommendation}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* AI Explanation */}
-            <div className="bg-white/70 backdrop-blur-lg shadow-xl hover:shadow-2xl transition rounded-2xl p-6 border">
-
-              <h2 className="text-xl font-semibold mb-2">
-                AI Explanation
-              </h2>
-
-              <p className="text-gray-700">
-                The model detected keywords in the feedback that relate
-                strongly to the predicted industries. Sentiment analysis
-                was performed using a transformer-based BERT model,
-                while industry classification uses zero-shot learning
-                with BART.
-              </p>
-            </div>
-          </>
-        )}
       </div>
+
     </div>
-  );
+
+  )
+
 }
 
-export default Home;
+export default Home

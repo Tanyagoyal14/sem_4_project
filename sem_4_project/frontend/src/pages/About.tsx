@@ -1,35 +1,22 @@
-function About() {
+function About(){
 
-  return (
-    <div className="space-y-6">
+  return(
 
-      <h1 className="text-3xl font-bold">
+    <div className="p-10">
+
+      <h1 className="text-3xl font-bold mb-4">
         About This Project
       </h1>
 
-      <div className="bg-white/70 backdrop-blur-lg shadow-xl rounded-2xl p-6 border">
-
-        <p className="text-gray-700">
-          The Intelligent Customer Feedback Analysis System
-          uses Natural Language Processing and Generative AI
-          to convert raw customer feedback into actionable
-          business insights.
-        </p>
-
-        <ul className="list-disc mt-4 ml-6 space-y-2 text-gray-700">
-
-          <li>Sentiment Analysis using BERT</li>
-          <li>Zero-shot Industry Classification</li>
-          <li>Confidence Visualization</li>
-          <li>Industry-Specific Recommendations</li>
-          <li>NLP Data Cleaning Pipeline</li>
-
-        </ul>
-
-      </div>
+      <p>
+        This system analyzes customer feedback using NLP and Generative AI to
+        detect sentiment, predict industries, and generate business insights.
+      </p>
 
     </div>
-  );
+
+  )
+
 }
 
-export default About;
+export default About

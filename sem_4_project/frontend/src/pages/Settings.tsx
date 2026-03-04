@@ -1,11 +1,11 @@
-function Analytics() {
+function Settings() {
 
   return (
     <div className="text-white text-3xl">
-      Analytics Dashboard
+      Settings
     </div>
   );
 
 }
 
-export default Analytics;
+export default Settings;

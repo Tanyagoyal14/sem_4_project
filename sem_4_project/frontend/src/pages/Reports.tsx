@@ -1,11 +1,11 @@
-function Analytics() {
+function Reports() {
 
   return (
     <div className="text-white text-3xl">
-      Analytics Dashboard
+      AI Reports
     </div>
   );
 
 }
 
-export default Analytics;
+export default Reports;

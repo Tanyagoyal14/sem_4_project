@@ -1,43 +1,42 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Sidebar from "./components/Sidebar";
+import Layout from "./components/Layout";
 
-import Home from "./pages/Home";
+import Landing from "./pages/Landing";
+import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
-import CleaningDemo from "./pages/CleaningDemo";
-import About from "./pages/About";
+import History from "./pages/History";
+import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 
 function App() {
+
   return (
+
     <BrowserRouter>
-      <div className="flex min-h-screen">
 
-        {/* Sidebar Navigation */}
-        <Sidebar />
+      <Routes>
 
-        {/* Main Content Area */}
-        <div className="flex-1 bg-gray-100 p-8">
+        {/* Landing page */}
 
-          <Routes>
+        <Route path="/" element={<Landing />} />
 
-            {/* Main Dashboard */}
-            <Route path="/" element={<Home />} />
+        {/* Dashboard layout */}
 
-            {/* Analytics Page */}
-            <Route path="/analytics" element={<Analytics />} />
+        <Route path="/app" element={<Layout />}>
 
-            {/* Data Cleaning Demo */}
-            <Route path="/cleaning" element={<CleaningDemo />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="analytics" element={<Analytics />} />
+          <Route path="history" element={<History />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="settings" element={<Settings />} />
 
-            {/* About Project */}
-            <Route path="/about" element={<About />} />
+        </Route>
 
-          </Routes>
+      </Routes>
 
-        </div>
-
-      </div>
     </BrowserRouter>
+
   );
 }
 

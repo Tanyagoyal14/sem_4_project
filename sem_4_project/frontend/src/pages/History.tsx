@@ -1,11 +1,11 @@
-function Analytics() {
+function History() {
 
   return (
     <div className="text-white text-3xl">
-      Analytics Dashboard
+      Feedback History
     </div>
   );
 
 }
 
-export default Analytics;
+export default History;
