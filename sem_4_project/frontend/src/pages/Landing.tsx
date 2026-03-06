@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-import AIFeedbackBackground from "../components/AIFeedbackBackground";
+import { Link } from "react-router-dom"
+import AIFeedbackBackground from "../components/AIFeedbackBackground"
 
 function Landing(){
 

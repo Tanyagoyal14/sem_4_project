@@ -5,6 +5,7 @@ import StatsCards from "../components/StatsCards";
 import IndustryPieChart from "../components/IndustryPieChart";
 import LiveFeed from "../components/LiveFeed";
 import AIInsights from "../components/AIInsights";
+import AIFeedbackBackground from "../components/AIFeedbackBackground";
 
 import useFeedbackStream from "../hooks/useFeedbackStream";
 
@@ -39,47 +40,69 @@ function Dashboard() {
 
   return (
 
-    <div>
+    <div className="relative min-h-screen text-white">
 
-      <Topbar/>
+      {/* AI Background */}
+      <AIFeedbackBackground/>
 
-      <StatsCards/>
+      {/* Main UI */}
+      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
 
-      {/* Feedback Input */}
+        <Topbar/>
 
-      <div className="bg-white/25 backdrop-blur-xl border border-white/30 rounded-2xl p-6 mt-8">
+        {/* Stats Cards */}
+        <div className="mt-6">
+          <StatsCards/>
+        </div>
 
-        <textarea
-          className="w-full p-4 rounded-xl"
-          placeholder="Example: Delivery was late and the app crashed"
-          value={feedback}
-          onChange={(e) => setFeedback(e.target.value)}
-        />
+        {/* Feedback Input */}
+        <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6 mt-8 shadow-lg">
 
-        <button
-          onClick={analyze}
-          className="mt-4 bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-xl"
-        >
-          Analyze Feedback
-        </button>
+          <h2 className="text-xl font-semibold mb-3">
+            Analyze Customer Feedback
+          </h2>
 
-      </div>
+          <textarea
+            className="w-full p-4 rounded-xl text-black"
+            placeholder="Example: Delivery was late and the app crashed"
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+          />
 
-      {/* Charts */}
+          <button
+            onClick={analyze}
+            className="mt-4 bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-xl transition"
+          >
+            Analyze Feedback
+          </button>
 
-      <div className="grid lg:grid-cols-2 gap-6 mt-8">
+        </div>
 
-        <IndustryPieChart data={industryData}/>
+        {/* Charts + Live Feed */}
+        <div className="grid lg:grid-cols-2 gap-6 mt-8">
 
-        <LiveFeed stream={stream}/>
+          <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
+            <h3 className="text-lg font-semibold mb-4">Industry Prediction</h3>
+            <IndustryPieChart data={industryData}/>
+          </div>
 
-      </div>
+          <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
+            <h3 className="text-lg font-semibold mb-4">Live Feedback Stream</h3>
+            <LiveFeed stream={stream}/>
+          </div>
 
-      {/* AI Insights */}
+        </div>
 
-      <div className="mt-8">
+        {/* AI Insights */}
+        <div className="mt-8 bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
 
-        <AIInsights/>
+          <h3 className="text-lg font-semibold mb-4">
+            AI Insights
+          </h3>
+
+          <AIInsights/>
+
+        </div>
 
       </div>
 

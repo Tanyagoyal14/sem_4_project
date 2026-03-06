@@ -1,7 +1,6 @@
-
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from transformers import pipeline
 from datetime import datetime
 
@@ -15,7 +14,6 @@ app = FastAPI(
     version="3.0"
 )
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,20 +26,23 @@ app.add_middleware(
 # Load Models
 # ---------------------------------
 
-# Sentiment Model
-sentiment_model = pipeline(
-    "sentiment-analysis",
-    model="distilbert-base-uncased-finetuned-sst-2-english"
-)
+try:
 
-# Zero-shot multi-label classifier
-classifier = pipeline(
-    "zero-shot-classification",
-    model="facebook/bart-large-mnli"
-)
+    sentiment_model = pipeline(
+        "sentiment-analysis",
+        model="distilbert-base-uncased-finetuned-sst-2-english"
+    )
+
+    classifier = pipeline(
+        "zero-shot-classification",
+        model="facebook/bart-large-mnli"
+    )
+
+except Exception as e:
+    print("Model loading error:", e)
 
 # ---------------------------------
-# Company Categories
+# Industry Labels
 # ---------------------------------
 
 COMPANY_LABELS = [
@@ -57,7 +58,7 @@ COMPANY_LABELS = [
 ]
 
 # ---------------------------------
-# Industry Recommendation Engine
+# Recommendation Engine
 # ---------------------------------
 
 INDUSTRY_RECOMMENDATIONS = {
@@ -77,7 +78,7 @@ INDUSTRY_RECOMMENDATIONS = {
 # ---------------------------------
 
 class FeedbackRequest(BaseModel):
-    feedback: str
+    feedback: str = Field(..., min_length=3, max_length=500)
 
 # ---------------------------------
 # Routes
@@ -87,64 +88,76 @@ class FeedbackRequest(BaseModel):
 def home():
     return {"status": "Advanced AI System Running"}
 
+# ---------------------------------
+# Main Analysis Endpoint
+# ---------------------------------
+
 @app.post("/analyze-feedback")
 def analyze_feedback(request: FeedbackRequest):
 
-    text = request.feedback
+    try:
 
-    # -------- Sentiment --------
-    sentiment_result = sentiment_model(text)[0]
-    sentiment = sentiment_result["label"]
-    sentiment_confidence = round(sentiment_result["score"], 3)
+        text = request.feedback
 
-    # -------- Multi-label classification --------
-    classification_result = classifier(
-        text,
-        COMPANY_LABELS,
-        multi_label=True
-    )
+        # Sentiment Analysis
+        sentiment_result = sentiment_model(text)[0]
 
-    labels = classification_result["labels"]
-    scores = classification_result["scores"]
+        sentiment = sentiment_result["label"]
+        sentiment_confidence = round(sentiment_result["score"], 3)
 
-    # Pair labels with confidence
-    industry_confidence = [
-        {
-            "industry": label,
-            "confidence": round(score, 3)
+        # Multi-label Classification
+        classification_result = classifier(
+            text,
+            COMPANY_LABELS,
+            multi_label=True
+        )
+
+        labels = classification_result["labels"]
+        scores = classification_result["scores"]
+
+        industry_confidence = [
+            {
+                "industry": label,
+                "confidence": round(score, 3)
+            }
+            for label, score in zip(labels, scores)
+        ]
+
+        industry_confidence.sort(
+            key=lambda x: x["confidence"],
+            reverse=True
+        )
+
+        top_industries = industry_confidence[:3]
+
+        recommendations = []
+
+        for item in top_industries:
+
+            industry = item["industry"]
+
+            if industry in INDUSTRY_RECOMMENDATIONS:
+
+                recommendations.append({
+                    "industry": industry,
+                    "recommendation": INDUSTRY_RECOMMENDATIONS[industry]
+                })
+
+        return {
+            "feedback": text,
+            "sentiment": sentiment,
+            "sentiment_confidence": sentiment_confidence,
+            "top_industries": top_industries,
+            "recommendations": recommendations,
+            "timestamp": datetime.now().isoformat()
         }
-        for label, score in zip(labels, scores)
-    ]
 
-    # Sort by highest confidence
-    industry_confidence = sorted(
-        industry_confidence,
-        key=lambda x: x["confidence"],
-        reverse=True
-    )
+    except Exception as e:
 
-    # Top 3 industries
-    top_industries = industry_confidence[:3]
-
-    # Generate recommendations for top industries
-    recommendations = []
-    for item in top_industries:
-        industry = item["industry"]
-        if industry in INDUSTRY_RECOMMENDATIONS:
-            recommendations.append({
-                "industry": industry,
-                "recommendation": INDUSTRY_RECOMMENDATIONS[industry]
-            })
-
-    return {
-        "feedback": text,
-        "sentiment": sentiment,
-        "sentiment_confidence": sentiment_confidence,
-        "top_industries": top_industries,
-        "recommendations": recommendations,
-        "timestamp": datetime.now().isoformat()
-    }
-
+        raise HTTPException(
+            status_code=500,
+            detail=f"Analysis failed: {str(e)}"
+        )
 
 # ---------------------------------
 # Confidence Visualization Endpoint
@@ -171,6 +184,11 @@ def industry_confidence_visual(request: FeedbackRequest):
         }
         for label, score in zip(labels, scores)
     ]
+
+    visualization_data.sort(
+        key=lambda x: x["confidence_score"],
+        reverse=True
+    )
 
     return {
         "feedback": text,
