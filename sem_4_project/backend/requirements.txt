@@ -5,3 +5,7 @@ torch==2.2.1
 pydantic==2.6.3
 scikit-learn==1.4.1
 numpy==1.26.4
+python-multipart
+pydantic
+sentencepiece
+accelerate

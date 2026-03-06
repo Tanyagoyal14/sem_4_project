@@ -1,7 +1,10 @@
 function AIInsights() {
+
   return (
-    <div className="bg-white/30 backdrop-blur-xl p-6 rounded-xl shadow-lg">
-      <h2 className="text-white font-semibold mb-4">
+
+    <div className="bg-white/25 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
+
+      <h2 className="text-white text-xl font-semibold mb-4">
         AI Insights
       </h2>
 
@@ -10,14 +13,17 @@ function AIInsights() {
       </p>
 
       <p className="text-white mb-2">
-        Frequent keywords: delivery, late, refund
+        Frequent keywords: delivery, refund, late
       </p>
 
       <p className="text-white">
         Suggested action: Improve delivery tracking system.
       </p>
+
     </div>
+
   );
+
 }
 
 export default AIInsights;

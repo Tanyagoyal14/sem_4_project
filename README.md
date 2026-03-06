@@ -150,6 +150,14 @@ This project demonstrates:
 * Zero-shot learning
 * API-based AI deployment
 
+Suitable for:
+
+* Final Year Projects
+* Research Prototypes
+* Hackathons
+* AI Portfolio Projects
+
+---
 
 # 👩‍💻 Author
 
