@@ -1,71 +1,84 @@
-import { Link } from "react-router-dom";
-import {
-  LayoutDashboard,
-  BarChart3,
-  History,
-  FileText,
-  Settings
-} from "lucide-react";
+import { NavLink } from "react-router-dom";
 
 function Sidebar() {
 
+  const base =
+    "flex items-center gap-3 px-4 py-3 rounded-lg transition";
+
   return (
 
-    <div className="w-64 min-h-screen fixed left-0 top-0 bg-black/40 backdrop-blur-xl text-white p-6">
+    <div className="w-64 min-h-screen bg-[#0f0f17] border-r border-[#1f1f2e] p-6 text-gray-200">
 
-      {/* Logo / Title */}
-
-      <h1 className="text-2xl font-bold mb-12">
+      <h2 className="text-2xl font-bold mb-8 text-purple-400">
         AI Insights
-      </h1>
+      </h2>
 
-      {/* Navigation */}
+      <nav className="space-y-3">
 
-      <nav className="flex flex-col gap-6 text-lg">
-
-        <Link
+        <NavLink
           to="/app/dashboard"
-          className="flex items-center gap-3 hover:text-pink-300 transition"
+          className={({isActive}) =>
+            `${base} ${
+              isActive
+                ? "bg-purple-600/20 text-white"
+                : "text-gray-400 hover:bg-[#1a1a24]"
+            }`
+          }
         >
-          <LayoutDashboard size={20}/>
-          Dashboard
-        </Link>
+          📊 Dashboard
+        </NavLink>
 
-
-        <Link
+        <NavLink
           to="/app/analytics"
-          className="flex items-center gap-3 hover:text-pink-300 transition"
+          className={({isActive}) =>
+            `${base} ${
+              isActive
+                ? "bg-purple-600/20 text-white"
+                : "text-gray-400 hover:bg-[#1a1a24]"
+            }`
+          }
         >
-          <BarChart3 size={20}/>
-          Analytics
-        </Link>
+          📈 Analytics
+        </NavLink>
 
-
-        <Link
+        <NavLink
           to="/app/history"
-          className="flex items-center gap-3 hover:text-pink-300 transition"
+          className={({isActive}) =>
+            `${base} ${
+              isActive
+                ? "bg-purple-600/20 text-white"
+                : "text-gray-400 hover:bg-[#1a1a24]"
+            }`
+          }
         >
-          <History size={20}/>
-          Feedback History
-        </Link>
+          🕓 Feedback History
+        </NavLink>
 
-
-        <Link
+        <NavLink
           to="/app/reports"
-          className="flex items-center gap-3 hover:text-pink-300 transition"
+          className={({isActive}) =>
+            `${base} ${
+              isActive
+                ? "bg-purple-600/20 text-white"
+                : "text-gray-400 hover:bg-[#1a1a24]"
+            }`
+          }
         >
-          <FileText size={20}/>
-          Reports
-        </Link>
+          📄 Reports
+        </NavLink>
 
-
-        <Link
+        <NavLink
           to="/app/settings"
-          className="flex items-center gap-3 hover:text-pink-300 transition"
+          className={({isActive}) =>
+            `${base} ${
+              isActive
+                ? "bg-purple-600/20 text-white"
+                : "text-gray-400 hover:bg-[#1a1a24]"
+            }`
+          }
         >
-          <Settings size={20}/>
-          Settings
-        </Link>
+          ⚙ Settings
+        </NavLink>
 
       </nav>
 

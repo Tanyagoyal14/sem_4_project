@@ -1,100 +1,89 @@
-import { useState } from "react";
+import { useState } from "react"
+import { motion } from "framer-motion"
 
-import Topbar from "../components/Topbar";
-import StatsCards from "../components/StatsCards";
-import IndustryPieChart from "../components/IndustryPieChart";
-import LiveFeed from "../components/LiveFeed";
-import AIInsights from "../components/AIInsights";
-import SentimentHeatmap from "../components/SentimentHeatmap";
-import TrendDetector from "../components/TrendDetector";
-import AIFeedbackBackground from "../components/AIFeedbackBackground";
+import Topbar from "../components/Topbar"
+import StatsCards from "../components/StatsCards"
+import IndustryPieChart from "../components/IndustryPieChart"
+import LiveFeed from "../components/LiveFeed"
+import AIInsights from "../components/AIInsights"
+import SentimentHeatmap from "../components/SentimentHeatmap"
+import TrendDetector from "../components/TrendDetector"
+import NeuralBackground from "../components/NeuralBackground"
 
-import useFeedbackStream from "../hooks/useFeedbackStream";
+import useFeedbackStream from "../hooks/useFeedbackStream"
 
-function Dashboard() {
+function Dashboard(){
 
-  const { stream, addFeedback } = useFeedbackStream();
+  const {stream, addFeedback} = useFeedbackStream()
 
-  const [feedback, setFeedback] = useState("");
-  const [industryData, setIndustryData] = useState([]);
+  const [feedback,setFeedback] = useState("")
+  const [industryData,setIndustryData] = useState<any[]>([])
 
-  const analyze = async () => {
+  const analyze = async()=>{
 
-    if (!feedback) return;
+    if(!feedback) return
 
-    const res = await fetch("http://localhost:8002/analyze-feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ feedback })
-    });
+    const res = await fetch("http://localhost:8002/analyze-feedback",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({feedback})
+    })
 
-    const data = await res.json();
+    const data = await res.json()
 
-    addFeedback(feedback, data.sentiment);
+    addFeedback(feedback,data.sentiment)
 
-    setIndustryData(data.top_industries);
+    setIndustryData(data.top_industries || [])
 
-    setFeedback("");
+    setFeedback("")
+  }
 
-  };
+  return(
 
-  return (
+    <motion.div
+      initial={{ opacity:0, y:40 }}
+      animate={{ opacity:1, y:0 }}
+      exit={{ opacity:0, y:-40 }}
+      transition={{ duration:0.6 }}
+      className="min-h-screen bg-[#0b0b0f] text-gray-200 relative p-8"
+    >
 
-    <div className="relative min-h-screen text-white">
+      <NeuralBackground/>
 
-      {/* AI animated background */}
-      <AIFeedbackBackground/>
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
+      <div className="relative z-10 max-w-7xl mx-auto">
 
         <Topbar/>
 
-        {/* Stats */}
         <div className="mt-6">
           <StatsCards/>
         </div>
 
-        {/* Feedback Input */}
-        <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6 mt-8 shadow-lg">
+        {/* Row 1 */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mt-8">
 
-          <h2 className="text-xl font-semibold mb-3">
-            Analyze Customer Feedback
-          </h2>
+          <div className="xl:col-span-2 bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6">
 
-          <textarea
-            className="w-full p-4 rounded-xl text-black"
-            placeholder="Example: Delivery was late and the app crashed"
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-          />
+            <h2 className="text-xl font-semibold mb-4">
+              Analyze Customer Feedback
+            </h2>
 
-          <button
-            onClick={analyze}
-            className="mt-4 bg-pink-500 hover:bg-pink-600 text-white px-6 py-2 rounded-xl transition"
-          >
-            Analyze Feedback
-          </button>
+            <textarea
+              className="w-full p-4 rounded-lg bg-black border border-[#1f1f2e]"
+              placeholder="Example: Delivery was late"
+              value={feedback}
+              onChange={(e)=>setFeedback(e.target.value)}
+            />
 
-        </div>
-
-        {/* Charts row */}
-        <div className="grid lg:grid-cols-2 gap-6 mt-8">
-
-          <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
-
-            <h3 className="text-lg font-semibold mb-4">
-              Industry Prediction
-            </h3>
-
-            <IndustryPieChart data={industryData}/>
+            <button
+              onClick={analyze}
+              className="mt-4 bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded-lg"
+            >
+              Analyze
+            </button>
 
           </div>
 
-          <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
-
-            <h3 className="text-lg font-semibold mb-4">
-              Live Feedback Stream
-            </h3>
+          <div className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6">
 
             <LiveFeed stream={stream}/>
 
@@ -102,21 +91,19 @@ function Dashboard() {
 
         </div>
 
-        {/* AI Analytics row */}
-        <div className="grid lg:grid-cols-2 gap-6 mt-8">
+        {/* Row 2 */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
+
+          <IndustryPieChart data={industryData}/>
 
           <SentimentHeatmap stream={stream}/>
 
-          <TrendDetector stream={stream}/>
-
         </div>
 
-        {/* AI Insights */}
-        <div className="mt-8 bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
+        {/* Row 3 */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-8">
 
-          <h3 className="text-lg font-semibold mb-4">
-            AI Insights
-          </h3>
+          <TrendDetector stream={stream}/>
 
           <AIInsights/>
 
@@ -124,10 +111,10 @@ function Dashboard() {
 
       </div>
 
-    </div>
+    </motion.div>
 
-  );
+  )
 
 }
 
-export default Dashboard;
+export default Dashboard

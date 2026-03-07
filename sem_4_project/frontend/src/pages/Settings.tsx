@@ -1,18 +1,18 @@
 import { useState } from "react";
 
-function Settings() {
+function Settings(){
 
-  const [darkMode, setDarkMode] = useState(true);
+  const [darkMode,setDarkMode] = useState(true)
 
-  return (
+  return(
 
-    <div className="p-8 text-white">
+    <div className="min-h-screen bg-[#0b0b0f] text-gray-200 p-8">
 
       <h1 className="text-3xl font-bold mb-6">
         Settings
       </h1>
 
-      <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6 space-y-6">
+      <div className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 space-y-6">
 
         <div>
 
@@ -21,8 +21,8 @@ function Settings() {
           </h2>
 
           <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="bg-pink-500 px-4 py-2 rounded-lg"
+          onClick={()=>setDarkMode(!darkMode)}
+          className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg"
           >
             Toggle Dark Mode
           </button>
@@ -36,8 +36,8 @@ function Settings() {
           </h2>
 
           <input
-            className="p-2 rounded text-black"
-            defaultValue="http://localhost:8002"
+          className="p-2 rounded bg-black border border-[#1f1f2e]"
+          defaultValue="http://localhost:8002"
           />
 
         </div>
@@ -46,8 +46,8 @@ function Settings() {
 
     </div>
 
-  );
+  )
 
 }
 
-export default Settings;
+export default Settings

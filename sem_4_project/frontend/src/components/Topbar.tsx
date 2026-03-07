@@ -1,30 +1,39 @@
-import { Bell, User } from "lucide-react";
+function Topbar(){
 
-function Topbar() {
+  return(
 
-  return (
+    <div className="flex justify-between items-center mb-6">
 
-    <div className="flex justify-between items-center mb-8">
+      <div>
 
-      <h1 className="text-3xl font-bold text-white">
-        AI Feedback Dashboard
-      </h1>
+        <h1 className="text-3xl font-bold">
+          AI Feedback Dashboard
+        </h1>
 
-      <div className="flex items-center gap-6 text-white">
+        <div className="flex items-center gap-2 text-green-400 text-sm mt-1">
 
-        <Bell className="cursor-pointer hover:text-pink-300"/>
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"/>
 
-        <div className="flex items-center gap-2">
-          <User />
-          <span>Admin</span>
+          AI Models Active
+
         </div>
+
+      </div>
+
+      <div className="flex items-center gap-6">
+
+        <span className="text-xl">🔔</span>
+
+        <span className="flex items-center gap-2">
+          👤 Admin
+        </span>
 
       </div>
 
     </div>
 
-  );
+  )
 
 }
 
-export default Topbar;
+export default Topbar

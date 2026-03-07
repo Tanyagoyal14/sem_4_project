@@ -1,42 +1,51 @@
-import { motion } from "framer-motion";
+function StatsCards(){
 
-const stats = [
-  { title: "Total Feedback", value: 215 },
-  { title: "Positive", value: 102 },
-  { title: "Neutral", value: 56 },
-  { title: "Negative", value: 57 }
-];
+  const cards = [
 
-function StatsCards() {
+    {title:"Total Feedback", value:215},
+    {title:"Positive", value:102},
+    {title:"Neutral", value:56},
+    {title:"Negative", value:57}
 
-  return (
+  ]
 
-    <div className="grid md:grid-cols-4 grid-cols-2 gap-6">
+  return(
 
-      {stats.map((s, index) => (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
 
-        <motion.div
-          key={index}
-          initial={{ opacity:0, y:20 }}
-          animate={{ opacity:1, y:0 }}
-          transition={{ delay:index * 0.2 }}
-          className="bg-white/25 backdrop-blur-xl border border-white/30 rounded-2xl shadow-lg p-6 text-center"
+      {cards.map((c,i)=>(
+
+        <div
+          key={i}
+          className="
+          bg-white/10
+          backdrop-blur-xl
+          border border-white/20
+          rounded-xl
+          p-6
+          text-center
+          shadow-[0_0_25px_rgba(168,85,247,0.3)]
+          hover:scale-105
+          transition
+          "
         >
 
-          <p className="text-white">{s.title}</p>
-
-          <p className="text-3xl font-bold text-white">
-            {s.value}
+          <p className="text-sm mb-2">
+            {c.title}
           </p>
 
-        </motion.div>
+          <h3 className="text-3xl font-bold">
+            {c.value}
+          </h3>
+
+        </div>
 
       ))}
 
     </div>
 
-  );
+  )
 
 }
 
-export default StatsCards;
+export default StatsCards

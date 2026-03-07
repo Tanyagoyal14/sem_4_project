@@ -1,26 +1,19 @@
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Link } from "react-router-dom"
+import { motion } from "framer-motion"
 
-function Landing() {
+function Landing(){
 
-  const [showText, setShowText] = useState(false);
+  return(
 
-  useEffect(() => {
+    <motion.div
+      initial={{ opacity:0 }}
+      animate={{ opacity:1 }}
+      exit={{ opacity:0 }}
+      transition={{ duration:0.7 }}
+      className="relative min-h-screen flex items-center justify-center text-white"
+    >
 
-    // delay text appearance so user watches video first
-    const timer = setTimeout(() => {
-      setShowText(true);
-    }, 4000); // 4 seconds
-
-    return () => clearTimeout(timer);
-
-  }, []);
-
-  return (
-
-    <div className="relative min-h-screen flex items-center justify-center text-white">
-
-      {/* Video Background */}
+      {/* Background Video */}
       <video
         autoPlay
         loop
@@ -28,40 +21,37 @@ function Landing() {
         playsInline
         className="absolute w-full h-full object-cover"
       >
-        <source src="/feedback-bg.mp4" type="video/mp4" />
+        <source src="/feedback-bg.mp4" type="video/mp4"/>
       </video>
 
-      {/* Dark overlay */}
-      <div className="absolute inset-0 bg-black/50"></div>
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/60"></div>
 
-      {/* Animated Text Container */}
-      <div
-        className={`relative z-10 text-center px-10 py-12 bg-white/10 backdrop-blur-xl rounded-2xl shadow-xl transition-all duration-1000 ${
-          showText ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-        }`}
-      >
+      {/* Content */}
+      <div className="relative z-10 text-center">
 
-        <h1 className="text-5xl font-bold mb-6">
+        <h1 className="text-6xl font-bold mb-6">
           AI Feedback Intelligence
         </h1>
 
-        <p className="text-lg mb-8 max-w-xl mx-auto">
-          Transform customer feedback into actionable insights using NLP and Generative AI.
+        <p className="text-lg mb-10 max-w-xl mx-auto">
+          Transform customer feedback into actionable insights using
+          NLP and Generative AI.
         </p>
 
         <Link
           to="/app/dashboard"
-          className="bg-pink-500 hover:bg-pink-600 px-8 py-3 rounded-xl text-lg font-semibold transition"
+          className="bg-purple-600 hover:bg-purple-700 px-8 py-3 rounded-xl text-lg shadow-lg"
         >
           Launch Dashboard
         </Link>
 
       </div>
 
-    </div>
+    </motion.div>
 
-  );
+  )
 
 }
 
-export default Landing;
+export default Landing
