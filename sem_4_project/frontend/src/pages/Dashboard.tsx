@@ -5,6 +5,8 @@ import StatsCards from "../components/StatsCards";
 import IndustryPieChart from "../components/IndustryPieChart";
 import LiveFeed from "../components/LiveFeed";
 import AIInsights from "../components/AIInsights";
+import SentimentHeatmap from "../components/SentimentHeatmap";
+import TrendDetector from "../components/TrendDetector";
 import AIFeedbackBackground from "../components/AIFeedbackBackground";
 
 import useFeedbackStream from "../hooks/useFeedbackStream";
@@ -21,11 +23,9 @@ function Dashboard() {
     if (!feedback) return;
 
     const res = await fetch("http://localhost:8002/analyze-feedback", {
-
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ feedback })
-
     });
 
     const data = await res.json();
@@ -42,15 +42,14 @@ function Dashboard() {
 
     <div className="relative min-h-screen text-white">
 
-      {/* AI Background */}
+      {/* AI animated background */}
       <AIFeedbackBackground/>
 
-      {/* Main UI */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
 
         <Topbar/>
 
-        {/* Stats Cards */}
+        {/* Stats */}
         <div className="mt-6">
           <StatsCards/>
         </div>
@@ -78,18 +77,37 @@ function Dashboard() {
 
         </div>
 
-        {/* Charts + Live Feed */}
+        {/* Charts row */}
         <div className="grid lg:grid-cols-2 gap-6 mt-8">
 
           <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
-            <h3 className="text-lg font-semibold mb-4">Industry Prediction</h3>
+
+            <h3 className="text-lg font-semibold mb-4">
+              Industry Prediction
+            </h3>
+
             <IndustryPieChart data={industryData}/>
+
           </div>
 
           <div className="bg-white/20 backdrop-blur-xl border border-white/30 rounded-2xl p-6">
-            <h3 className="text-lg font-semibold mb-4">Live Feedback Stream</h3>
+
+            <h3 className="text-lg font-semibold mb-4">
+              Live Feedback Stream
+            </h3>
+
             <LiveFeed stream={stream}/>
+
           </div>
+
+        </div>
+
+        {/* AI Analytics row */}
+        <div className="grid lg:grid-cols-2 gap-6 mt-8">
+
+          <SentimentHeatmap stream={stream}/>
+
+          <TrendDetector stream={stream}/>
 
         </div>
 
