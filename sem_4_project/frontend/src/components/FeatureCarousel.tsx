@@ -66,7 +66,7 @@ function FeatureCarousel(){
 
         <img
           src={slide.image}
-          className="w-full h-[260px] object-contain"
+          className="w-full h-[260px] object-cover rounded-lg"
         />
 
         <div className="p-6 text-center">
