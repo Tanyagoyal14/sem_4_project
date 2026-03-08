@@ -1,46 +1,30 @@
-function StatsCards(){
+function StatsCards({ csat }: { csat: number }) {
 
-  const cards = [
+  return (
 
-    {title:"Total Feedback", value:215},
-    {title:"Positive", value:102},
-    {title:"Neutral", value:56},
-    {title:"Negative", value:57}
+    <div className="grid md:grid-cols-4 gap-6 mt-6">
 
-  ]
+      <div className="bg-[#12121a] p-6 rounded-xl border border-[#1f1f2e]">
+        <p className="text-gray-400">Total Feedback</p>
+        <h2 className="text-2xl font-bold">Live</h2>
+      </div>
 
-  return(
+      <div className="bg-[#12121a] p-6 rounded-xl border border-[#1f1f2e]">
+        <p className="text-gray-400">Positive</p>
+        <h2 className="text-2xl font-bold text-green-400">Realtime</h2>
+      </div>
 
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <div className="bg-[#12121a] p-6 rounded-xl border border-[#1f1f2e]">
+        <p className="text-gray-400">Negative</p>
+        <h2 className="text-2xl font-bold text-red-400">Realtime</h2>
+      </div>
 
-      {cards.map((c,i)=>(
-
-        <div
-          key={i}
-          className="
-          bg-white/10
-          backdrop-blur-xl
-          border border-white/20
-          rounded-xl
-          p-6
-          text-center
-          shadow-[0_0_25px_rgba(168,85,247,0.3)]
-          hover:scale-105
-          transition
-          "
-        >
-
-          <p className="text-sm mb-2">
-            {c.title}
-          </p>
-
-          <h3 className="text-3xl font-bold">
-            {c.value}
-          </h3>
-
-        </div>
-
-      ))}
+      <div className="bg-[#12121a] p-6 rounded-xl border border-[#1f1f2e]">
+        <p className="text-gray-400">CSAT Score</p>
+        <h2 className="text-2xl font-bold text-purple-400">
+          {csat}%
+        </h2>
+      </div>
 
     </div>
 

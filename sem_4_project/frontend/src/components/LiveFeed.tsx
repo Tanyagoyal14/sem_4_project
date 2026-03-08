@@ -1,26 +1,25 @@
-import SentimentBadge from "./SentimentBadge";
+function LiveFeed({ stream }: any) {
 
-function LiveFeed({stream}:any){
+  return (
 
-  return(
+    <div className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6">
 
-    <div className="bg-white/30 backdrop-blur-xl p-6 rounded-xl">
-
-      <h2 className="text-white mb-4">
-        Live Feedback
+      <h2 className="text-lg font-semibold mb-4">
+        Live Feedback Stream
       </h2>
 
-      {stream.map((item:any,index:number)=>(
-        <div
-          key={index}
-          className="bg-white p-3 rounded mb-2 flex justify-between"
-        >
+      {stream.map((item: any, i: number) => (
 
-          <span>{item.text}</span>
+        <div key={i} className="border-b border-[#1f1f2e] py-2">
 
-          <SentimentBadge sentiment={item.sentiment}/>
+          <p className="text-gray-300">{item.feedback}</p>
+
+          <p className="text-sm text-gray-400">
+            {item.sentiment}
+          </p>
 
         </div>
+
       ))}
 
     </div>

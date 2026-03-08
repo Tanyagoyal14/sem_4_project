@@ -1,40 +1,70 @@
+import { useEffect, useState } from "react"
+
 function History(){
+
+  const [history,setHistory] = useState<any[]>([])
+
+  useEffect(()=>{
+
+    const fetchHistory = async()=>{
+
+      const res = await fetch("http://localhost:8002/feedback-history")
+
+      const data = await res.json()
+
+      setHistory(data.history)
+
+    }
+
+    fetchHistory()
+
+  },[])
 
   return(
 
-    <div className="min-h-screen bg-[#0b0b0f] text-gray-200 p-8">
+    <div className="p-8 text-gray-200">
 
-      <h1 className="text-3xl font-bold mb-6">
+      <h1 className="text-2xl font-bold mb-6">
         Feedback History
       </h1>
 
-      <div className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6">
+      <div className="bg-[#12121a] rounded-xl border border-[#1f1f2e] overflow-x-auto">
 
         <table className="w-full text-left">
 
-          <thead className="text-gray-400">
+          <thead className="border-b border-[#1f1f2e]">
 
             <tr>
-              <th className="pb-3">Feedback</th>
-              <th>Sentiment</th>
-              <th>Industry</th>
+
+              <th className="p-4">Feedback</th>
+              <th className="p-4">Sentiment</th>
+              <th className="p-4">Type</th>
+
             </tr>
 
           </thead>
 
-          <tbody className="text-gray-300">
+          <tbody>
 
-            <tr className="border-t border-[#1f1f2e]">
-              <td className="py-3">Delivery was late</td>
-              <td>Negative</td>
-              <td>Food Delivery</td>
-            </tr>
+            {history.map((item,i)=>(
+              
+              <tr key={i} className="border-b border-[#1f1f2e]">
 
-            <tr className="border-t border-[#1f1f2e]">
-              <td className="py-3">App works great</td>
-              <td>Positive</td>
-              <td>Technology</td>
-            </tr>
+                <td className="p-4">
+                  {item.feedback}
+                </td>
+
+                <td className="p-4">
+                  {item.sentiment}
+                </td>
+
+                <td className="p-4">
+                  {item.type}
+                </td>
+
+              </tr>
+
+            ))}
 
           </tbody>
 
