@@ -1,4 +1,6 @@
 import { useState } from "react"
+import { motion } from "framer-motion"
+
 import Topbar from "../components/Topbar"
 import StatsCards from "../components/StatsCards"
 import IndustryPieChart from "../components/IndustryPieChart"
@@ -49,11 +51,27 @@ function Dashboard() {
 
       <Topbar />
 
-      <StatsCards csat={csat} />
+      {/* Stats Cards - Slide Up */}
+
+      <motion.div
+        initial={{ opacity: 0, y: 60 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+      >
+        <StatsCards csat={csat} />
+      </motion.div>
+
 
       {/* Feedback Input */}
 
-      <div className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-8">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-8"
+      >
 
         <textarea
           className="w-full p-4 rounded-xl bg-black border border-[#1f1f2e]"
@@ -69,11 +87,18 @@ function Dashboard() {
           Analyze Feedback
         </button>
 
-      </div>
+      </motion.div>
+
 
       {/* Analysis Result */}
 
-      <div className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-6">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        viewport={{ once: true }}
+        className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-6"
+      >
 
         <h2 className="text-lg font-semibold mb-4">
           Analysis Result
@@ -100,21 +125,48 @@ function Dashboard() {
           </span>
         </p>
 
-      </div>
+      </motion.div>
 
-      {/* Charts */}
+
+      {/* Charts + Live Feed */}
 
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
 
-        <IndustryPieChart data={industryData} />
+        {/* Chart - Zoom In */}
 
-        <LiveFeed stream={stream} />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <IndustryPieChart data={industryData} />
+        </motion.div>
+
+
+        {/* Live Feed - Slide Left */}
+
+        <motion.div
+          initial={{ opacity: 0, x: 80 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <LiveFeed stream={stream} />
+        </motion.div>
 
       </div>
 
+
       {/* AI Recommendations */}
 
-      <div className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-8">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-8"
+      >
 
         <h2 className="text-lg font-semibold mb-4">
           AI Recommendations
@@ -136,13 +188,20 @@ function Dashboard() {
 
         ))}
 
-      </div>
+      </motion.div>
 
-      <div className="mt-8">
 
+      {/* AI Insights - Slide Right */}
+
+      <motion.div
+        initial={{ opacity: 0, x: -80 }}
+        whileInView={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.6 }}
+        viewport={{ once: true }}
+        className="mt-8"
+      >
         <AIInsights />
-
-      </div>
+      </motion.div>
 
     </div>
 
