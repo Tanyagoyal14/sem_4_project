@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
 import {
   PieChart,
   Pie,
@@ -6,14 +6,19 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer
-} from "recharts";
+} from "recharts"
+import { useLocation } from "react-router-dom"
+import { motion } from "framer-motion"
 
 function Analytics() {
 
-  const [history, setHistory] = useState<any[]>([]);
-  const [csat, setCsat] = useState(0);
+  const location = useLocation()
+  const selectedIndustry = location.state?.selectedIndustry
 
-  const COLORS = ["#22c55e", "#eab308", "#ef4444", "#3b82f6"];
+  const [history, setHistory] = useState<any[]>([])
+  const [csat, setCsat] = useState(0)
+
+  const COLORS = ["#22c55e", "#eab308", "#ef4444", "#3b82f6"]
 
   useEffect(() => {
 
@@ -21,94 +26,121 @@ function Analytics() {
 
       try {
 
-        const res = await fetch("http://localhost:8002/feedback-history");
-        const data = await res.json();
+        const res = await fetch("http://localhost:8002/feedback-history")
+        const data = await res.json()
 
         if (!data || !data.history) {
-          setHistory([]);
-          return;
+          setHistory([])
+          return
         }
 
-        setHistory(data.history);
+        let filtered = data.history
 
-        const positive = data.history.filter(
-          (f:any)=>f.sentiment === "Positive"
-        ).length;
-
-        const total = data.history.length;
-
-        if(total > 0){
-          setCsat(Math.round((positive / total) * 100));
+        // 🔥 FILTER BY INDUSTRY (IMPORTANT)
+        if (selectedIndustry) {
+          filtered = filtered.filter(
+            (f:any) => f.industry === selectedIndustry
+          )
         }
 
-      } catch(err){
+        setHistory(filtered)
 
-        console.error("Analytics error:", err);
-        setHistory([]);
+        const positive = filtered.filter(
+          (f:any) => f.sentiment === "Positive"
+        ).length
+
+        const total = filtered.length
+
+        if (total > 0) {
+          setCsat(Math.round((positive / total) * 100))
+        }
+
+      } catch(err) {
+
+        console.error("Analytics error:", err)
+        setHistory([])
 
       }
 
-    };
+    }
 
-    fetchData();
+    fetchData()
 
-  },[]);
+  }, [selectedIndustry])
 
 
   // --------------------------
-  // Sentiment counts
+  // Counts
   // --------------------------
 
   const sentimentCounts:any = {
     Positive: 0,
     Neutral: 0,
     Negative: 0
-  };
+  }
 
   const complaintCounts:any = {
     Complaint: 0,
     Suggestion: 0,
     Praise: 0,
     Question: 0
-  };
-
-
-  if(history && history.length > 0){
-
-    history.forEach((f:any)=>{
-
-      if(sentimentCounts[f.sentiment] !== undefined){
-        sentimentCounts[f.sentiment]++;
-      }
-
-      if(complaintCounts[f.type] !== undefined){
-        complaintCounts[f.type]++;
-      }
-
-    });
-
   }
+
+  history.forEach((f:any) => {
+
+    if (sentimentCounts[f.sentiment] !== undefined) {
+      sentimentCounts[f.sentiment]++
+    }
+
+    if (complaintCounts[f.type] !== undefined) {
+      complaintCounts[f.type]++
+    }
+
+  })
 
 
   const sentimentData = Object.keys(sentimentCounts).map(key => ({
     name: key,
     value: sentimentCounts[key]
-  }));
-
+  }))
 
   const complaintData = Object.keys(complaintCounts).map(key => ({
     name: key,
     value: complaintCounts[key]
-  }));
+  }))
 
 
   return (
 
-    <div className="p-8 text-white">
+    <motion.div
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.5 }}
+      className="p-8 text-white min-h-screen bg-[#0b0b0f]"
+    >
 
       <h1 className="text-3xl font-bold mb-6">
         Analytics Dashboard
       </h1>
+
+
+      {/* 🔥 Selected Industry Banner */}
+
+      {selectedIndustry && (
+
+        <div className="bg-[#12121a] border border-purple-500 rounded-xl p-4 mb-6">
+
+          <p className="text-purple-400 text-sm">
+            FILTERED VIEW
+          </p>
+
+          <p className="text-xl font-bold">
+            {selectedIndustry}
+          </p>
+
+        </div>
+
+      )}
 
 
       {/* Stats */}
@@ -141,9 +173,14 @@ function Analytics() {
 
       <div className="grid lg:grid-cols-2 gap-8">
 
-        {/* Sentiment Pie */}
+        {/* Sentiment Chart */}
 
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-xl border border-white/10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="bg-black/40 backdrop-blur-xl p-6 rounded-xl border border-white/10"
+        >
 
           <h2 className="text-xl mb-4">
             Sentiment Distribution
@@ -157,19 +194,12 @@ function Analytics() {
                 data={sentimentData}
                 dataKey="value"
                 nameKey="name"
-                cx="50%"
-                cy="50%"
                 outerRadius={100}
                 label
               >
 
                 {sentimentData.map((entry, index) => (
-
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
 
               </Pie>
@@ -181,12 +211,17 @@ function Analytics() {
 
           </ResponsiveContainer>
 
-        </div>
+        </motion.div>
 
 
-        {/* Complaint Types */}
+        {/* Feedback Type Chart */}
 
-        <div className="bg-black/40 backdrop-blur-xl p-6 rounded-xl border border-white/10">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.85 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.6 }}
+          className="bg-black/40 backdrop-blur-xl p-6 rounded-xl border border-white/10"
+        >
 
           <h2 className="text-xl mb-4">
             Feedback Type Distribution
@@ -200,19 +235,12 @@ function Analytics() {
                 data={complaintData}
                 dataKey="value"
                 nameKey="name"
-                cx="50%"
-                cy="50%"
                 outerRadius={100}
                 label
               >
 
                 {complaintData.map((entry, index) => (
-
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-
+                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
                 ))}
 
               </Pie>
@@ -224,25 +252,23 @@ function Analytics() {
 
           </ResponsiveContainer>
 
-        </div>
+        </motion.div>
 
       </div>
 
 
-      {/* Empty state */}
+      {/* Empty State */}
 
       {history.length === 0 && (
 
         <div className="mt-10 text-gray-400">
-          No feedback data yet. Analyze some feedback first.
+          No feedback data found for this category.
         </div>
 
       )}
 
-    </div>
-
-  );
-
+    </motion.div>
+  )
 }
 
-export default Analytics;
+export default Analytics

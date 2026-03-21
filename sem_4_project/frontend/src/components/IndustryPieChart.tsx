@@ -25,19 +25,12 @@ function IndustryPieChart({ data }: any) {
       whileHover={{ scale: 1.03 }}
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
-      className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl p-6 cursor-pointer"
+      className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 cursor-pointer"
     >
 
       <h3 className="text-white text-lg font-semibold mb-4">
         Industry Prediction
       </h3>
-
-      {/* CLICK OVERLAY (IMPORTANT FIX) */}
-
-      <div
-        onClick={() => navigate("/app/analytics")}
-        className="absolute inset-0 z-10"
-      />
 
       <ResponsiveContainer width="100%" height={320}>
 
@@ -50,6 +43,11 @@ function IndustryPieChart({ data }: any) {
             outerRadius={110}
             label
             animationDuration={900}
+            onClick={(entry: any) => {
+              navigate("/app/analytics", {
+                state: { selectedIndustry: entry.industry }
+              })
+            }}
           >
 
             {data.map((entry: any, index: number) => (
@@ -69,10 +67,11 @@ function IndustryPieChart({ data }: any) {
       </ResponsiveContainer>
 
       <p className="text-xs text-gray-400 mt-3 text-center">
-        Click to view analytics →
+        Click a section to view analytics →
       </p>
 
     </motion.div>
+
   )
 }
 
