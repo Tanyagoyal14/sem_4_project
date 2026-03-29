@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from transformers import pipeline
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi.encoders import jsonable_encoder
+import pandas as pd
 
-# 🔥 MongoDB import
-from database import feedback_collection
+# 🔥 MongoDB imports
+from database import feedback_collection, profile_collection
 
 app = FastAPI()
 
@@ -23,14 +25,21 @@ app.add_middleware(
 )
 
 # -------------------------
-# Models
+# MODELS
 # -------------------------
 
 class FeedbackRequest(BaseModel):
     feedback: str
 
+class ProfileModel(BaseModel):
+    name: str
+    email: str
+    company: str
+    role: str
+    avatar: str
+
 # -------------------------
-# AI Models
+# AI MODELS
 # -------------------------
 
 sentiment_model = pipeline(
@@ -54,7 +63,7 @@ feedback_types = [
 ]
 
 # -------------------------
-# API: Analyze Feedback
+# ANALYZE FEEDBACK
 # -------------------------
 
 @app.post("/analyze-feedback")
@@ -110,11 +119,11 @@ def analyze_feedback(request: FeedbackRequest):
             )
         })
 
-    # 5️⃣ CSAT calculation (simple logic)
+    # 5️⃣ CSAT calculation
     csat_score = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
 
     # -------------------------
-    # 🔥 SAVE TO MONGODB
+    # SAVE TO MONGODB
     # -------------------------
 
     feedback_collection.insert_one({
@@ -141,7 +150,7 @@ def analyze_feedback(request: FeedbackRequest):
     }
 
 # -------------------------
-# API: Get Feedback History
+# FEEDBACK HISTORY
 # -------------------------
 
 @app.get("/feedback-history")
@@ -156,3 +165,83 @@ def get_feedback_history():
     return {
         "history": jsonable_encoder(data)
     }
+
+# -------------------------
+# PROFILE APIs
+# -------------------------
+
+@app.post("/save-profile")
+def save_profile(profile: ProfileModel):
+
+    profile_collection.update_one(
+        {"email": profile.email},
+        {"$set": profile.dict()},
+        upsert=True
+    )
+
+    return {"message": "Profile saved successfully"}
+
+@app.get("/get-profile")
+def get_profile(email: str):
+
+    data = profile_collection.find_one(
+        {"email": email},
+        {"_id": 0}
+    )
+
+    return data or {}
+
+# -------------------------
+# WEEKLY REPORT DOWNLOAD
+# -------------------------
+
+@app.get("/download-weekly-report")
+def download_weekly_report(format: str = "csv"):
+
+    last_week = datetime.now() - timedelta(days=7)
+
+    data = list(
+        feedback_collection.find(
+            {"timestamp": {"$gte": last_week}},
+            {"_id": 0}
+        )
+    )
+
+    if not data:
+        return {"error": "No data available in last 7 days"}
+
+    df = pd.DataFrame(data)
+
+    file_path = f"weekly_report.{format}"
+
+    # CSV
+    if format == "csv":
+        df.to_csv(file_path, index=False)
+
+    # Excel
+    elif format == "excel":
+        df.to_excel(file_path, index=False)
+
+    # PDF
+    elif format == "pdf":
+        from reportlab.platypus import SimpleDocTemplate, Paragraph
+        from reportlab.lib.styles import getSampleStyleSheet
+
+        doc = SimpleDocTemplate(file_path)
+        styles = getSampleStyleSheet()
+        content = []
+
+        for row in data[:20]:
+            text = f"""
+            Feedback: {row.get('feedback')}<br/>
+            Sentiment: {row.get('sentiment')}<br/>
+            Type: {row.get('feedback_type')}<br/><br/>
+            """
+            content.append(Paragraph(text, styles["Normal"]))
+
+        doc.build(content)
+
+    else:
+        return {"error": "Invalid format"}
+
+    return FileResponse(path=file_path, filename=file_path)
