@@ -54,28 +54,52 @@ function Landing(){
 
       {/* 🚀 HERO CONTENT */}
       <div
-        className={`text-center max-w-3xl pt-50 transition-opacity duration-1000 ${
-          showContent ? "opacity-100" : "opacity-0"
-        }`}
-      >
+  className={`relative text-center max-w-3xl pt-50 transition-opacity duration-1000 ${
+    showContent ? "opacity-100" : "opacity-0"
+  }`}
+>
 
-        <h1 className="text-6xl font-bold mb-6">
-          AI Feedback Intelligence
-        </h1>
+  {/* 🔥 Glass Blur Background */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-md rounded-2xl -z-10"></div>
 
-        <p className="text-lg text-gray-200 mb-8">
-          Transform customer feedback into actionable insights using
-          NLP and Generative AI.
-        </p>
+  <div className="px-6 py-8">
 
-        <Link
-          to="/app/dashboard"
-          className="bg-pink-500 hover:bg-pink-600 px-8 py-3 rounded-xl text-lg font-semibold shadow-lg"
-        >
-          Launch Dashboard
-        </Link>
+    {/* 🧠 BRAND */}
+    <h1 className="text-7xl md:text-8xl font-extrabold mb-6 tracking-widest 
+                   bg-gradient-to-r from-purple-400 to-pink-500 
+                   text-transparent bg-clip-text drop-shadow-[0_0_25px_rgba(168,85,247,0.5)]">
+      SENTILYTICS
+    </h1>
 
-      </div>
+    {/* ✨ TAGLINE */}
+    <p className="text-2xl md:text-3xl text-purple-300 font-semibold mb-6">
+      Turn Feedback into Intelligence
+    </p>
+
+    {/* 📄 DESCRIPTION */}
+    <p className="text-lg md:text-xl text-gray-200 mb-10 leading-relaxed">
+      Transform customer feedback into actionable insights using
+      NLP and Generative AI.
+    </p>
+
+    {/* 💎 PREMIUM BUTTON */}
+    <Link
+      to="/app/dashboard"
+      className="relative inline-block px-10 py-4 text-lg font-semibold rounded-xl 
+                 bg-gradient-to-r from-pink-500 to-purple-600 
+                 shadow-lg shadow-purple-500/30
+                 hover:shadow-pink-500/40 hover:scale-105
+                 transition-all duration-300"
+    >
+      <span className="relative z-10">Launch Dashboard</span>
+
+      {/* Glow layer */}
+      <span className="absolute inset-0 rounded-xl bg-gradient-to-r from-pink-500 to-purple-600 opacity-30 blur-xl"></span>
+    </Link>
+
+  </div>
+
+</div>
 
       {/* 🎠 CAROUSEL */}
       {showContent && (
