@@ -1,29 +1,29 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
+import { motion } from "framer-motion"
 
 import FeatureCarousel from "../components/FeatureCarousel"
 import bgVideo from "../assets/video/feedback-bg.mp4"
 
 function Landing(){
 
-  const [showContent,setShowContent] = useState(false)
+  const [showContent, setShowContent] = useState(false)
 
-  useEffect(()=>{
+  useEffect(() => {
 
-    const timer = setTimeout(()=>{
+    const timer = setTimeout(() => {
       setShowContent(true)
-    },5000)
+    }, 5000)
 
-    return ()=>clearTimeout(timer)
+    return () => clearTimeout(timer)
 
-  },[])
+  }, [])
 
-  return(
+  return (
 
     <div className="relative min-h-screen text-white flex flex-col items-center justify-center px-6 overflow-hidden">
 
-      {/* VIDEO BACKGROUND */}
-
+      {/* 🎥 VIDEO BACKGROUND */}
       <video
         autoPlay
         muted
@@ -34,13 +34,25 @@ function Landing(){
         <source src={bgVideo} type="video/mp4"/>
       </video>
 
-      {/* OVERLAY */}
-
+      {/* 🌑 OVERLAY */}
       <div className="absolute inset-0 bg-black/50 -z-10"></div>
 
+      {/* 🔘 SKIP BUTTON (JUST SKIPS ANIMATION) */}
+      {!showContent && (
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          onClick={() => setShowContent(true)}
+          className="absolute top-6 right-6 z-50 px-4 py-2 rounded-lg 
+                     bg-black/60 backdrop-blur text-white text-sm 
+                     border border-gray-600 hover:bg-black/80 transition"
+        >
+          Skip →
+        </motion.button>
+      )}
 
-      {/* HERO CONTENT */}
-
+      {/* 🚀 HERO CONTENT */}
       <div
         className={`text-center max-w-3xl pt-50 transition-opacity duration-1000 ${
           showContent ? "opacity-100" : "opacity-0"
@@ -65,23 +77,15 @@ function Landing(){
 
       </div>
 
-
-      {/* CAROUSEL */}
-
+      {/* 🎠 CAROUSEL */}
       {showContent && (
-
         <div className="w-full max-w-3xl mt-20">
-
           <FeatureCarousel/>
-
         </div>
-
       )}
 
     </div>
-
   )
-
 }
 
 export default Landing

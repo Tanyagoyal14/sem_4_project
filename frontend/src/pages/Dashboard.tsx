@@ -19,6 +19,9 @@ function Dashboard() {
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
+  // =============================
+  // TEXT INPUT ANALYSIS (EXISTING)
+  // =============================
   const analyze = async () => {
 
     if (!feedback.trim()) return
@@ -34,14 +37,11 @@ function Dashboard() {
 
       let bodyData = {}
 
-      // 🔥 HANDLE BOTH SINGLE + MULTIPLE
       if (feedbackList.length === 1) {
         bodyData = { feedback: feedbackList[0] }
       } else {
         bodyData = { feedbacks: feedbackList }
       }
-
-      console.log("Sending:", bodyData)
 
       const res = await fetch("http://localhost:8002/analyze-feedback", {
         method: "POST",
@@ -55,18 +55,15 @@ function Dashboard() {
       }
 
       const data = await res.json()
-
       const resultList = data.results || []
 
       setResults(resultList)
 
-      // Update chart + CSAT
       if (resultList.length > 0) {
         setIndustryData(resultList[0].top_industries || [])
         setCsat(resultList[0].csat_score)
       }
 
-      // Update live feed
       resultList.forEach((r:any) => {
         addFeedback(r.feedback, r.sentiment)
       })
@@ -80,6 +77,52 @@ function Dashboard() {
     setLoading(false)
   }
 
+  // =============================
+  // CSV UPLOAD (NEW 🚀)
+  // =============================
+  const handleCSVUpload = async (e: any) => {
+
+    const file = e.target.files[0]
+    if (!file) return
+
+    setLoading(true)
+
+    const formData = new FormData()
+    formData.append("file", file)
+
+    try {
+
+      const res = await fetch("http://localhost:8002/upload-csv", {
+        method: "POST",
+        body: formData
+      })
+
+      if (!res.ok) {
+        console.error("CSV upload failed:", await res.text())
+        return
+      }
+
+      const data = await res.json()
+      const resultList = data.results || []
+
+      setResults(resultList)
+
+      if (resultList.length > 0) {
+        setIndustryData(resultList[0].top_industries || [])
+        setCsat(resultList[0].csat_score)
+      }
+
+      resultList.forEach((r:any) => {
+        addFeedback(r.feedback, r.sentiment)
+      })
+
+    } catch (err) {
+      console.error("CSV Error:", err)
+    }
+
+    setLoading(false)
+  }
+
   return (
 
     <div className="p-8 text-gray-200 min-h-screen bg-[#0b0b0f]">
@@ -87,7 +130,6 @@ function Dashboard() {
       <Topbar />
 
       {/* Stats Cards */}
-
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -97,7 +139,6 @@ function Dashboard() {
       </motion.div>
 
       {/* Feedback Input */}
-
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -129,10 +170,31 @@ Payment failed`}
           {loading ? "Analyzing..." : "Analyze Feedback"}
         </button>
 
+        {/* CSV Upload */}
+        <div className="mt-6">
+          <label className="block text-sm mb-2 text-gray-400">
+            Upload CSV File
+          </label>
+
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleCSVUpload}
+            className="block w-full text-sm text-gray-300
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-lg file:border-0
+              file:bg-purple-600 file:text-white
+              hover:file:bg-purple-700"
+          />
+
+          <p className="text-xs text-gray-500 mt-2">
+            CSV must contain a column named <b>feedback</b>
+          </p>
+        </div>
+
       </motion.div>
 
       {/* RESULTS */}
-
       <div className="mt-6 space-y-4">
 
         {results.map((r, i) => (
@@ -181,7 +243,6 @@ Payment failed`}
       </div>
 
       {/* Charts + Live Feed */}
-
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
 
         <motion.div
@@ -203,7 +264,6 @@ Payment failed`}
       </div>
 
       {/* AI Recommendations */}
-
       {results.length > 0 && (
 
         <motion.div
@@ -238,7 +298,6 @@ Payment failed`}
       )}
 
       {/* AI Insights */}
-
       <motion.div
         initial={{ opacity: 0, x: -80 }}
         whileInView={{ opacity: 1, x: 0 }}
