@@ -32,6 +32,3 @@
   animation: gradientMove 12s ease infinite;
   min-height: 100vh;
 }
-* {
-  cursor: url("/cursor-ai.png"), auto;
-}

@@ -15,34 +15,69 @@ function Dashboard() {
 
   const [feedback, setFeedback] = useState("")
   const [industryData, setIndustryData] = useState<any[]>([])
-  const [sentiment, setSentiment] = useState("")
-  const [feedbackType, setFeedbackType] = useState("")
   const [csat, setCsat] = useState(0)
-  const [recommendations, setRecommendations] = useState<any[]>([])
+  const [results, setResults] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
 
   const analyze = async () => {
 
-    if (!feedback) return
+    if (!feedback.trim()) return
 
-    const res = await fetch("http://localhost:8002/analyze-feedback", {
+    setLoading(true)
 
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ feedback })
+    try {
 
-    })
+      const feedbackList = feedback
+        .split("\n")
+        .map(f => f.trim())
+        .filter(f => f !== "")
 
-    const data = await res.json()
+      let bodyData = {}
 
-    addFeedback(feedback, data.sentiment)
+      // 🔥 HANDLE BOTH SINGLE + MULTIPLE
+      if (feedbackList.length === 1) {
+        bodyData = { feedback: feedbackList[0] }
+      } else {
+        bodyData = { feedbacks: feedbackList }
+      }
 
-    setIndustryData(data.top_industries || [])
-    setSentiment(data.sentiment)
-    setFeedbackType(data.feedback_type)
-    setRecommendations(data.recommendations || [])
-    setCsat(data.csat_score)
+      console.log("Sending:", bodyData)
 
-    setFeedback("")
+      const res = await fetch("http://localhost:8002/analyze-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bodyData)
+      })
+
+      if (!res.ok) {
+        console.error("Backend error:", await res.text())
+        return
+      }
+
+      const data = await res.json()
+
+      const resultList = data.results || []
+
+      setResults(resultList)
+
+      // Update chart + CSAT
+      if (resultList.length > 0) {
+        setIndustryData(resultList[0].top_industries || [])
+        setCsat(resultList[0].csat_score)
+      }
+
+      // Update live feed
+      resultList.forEach((r:any) => {
+        addFeedback(r.feedback, r.sentiment)
+      })
+
+      setFeedback("")
+
+    } catch (err) {
+      console.error("Error:", err)
+    }
+
+    setLoading(false)
   }
 
   return (
@@ -51,17 +86,15 @@ function Dashboard() {
 
       <Topbar />
 
-      {/* Stats Cards - Slide Up */}
+      {/* Stats Cards */}
 
       <motion.div
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
       >
         <StatsCards csat={csat} />
       </motion.div>
-
 
       {/* Feedback Input */}
 
@@ -69,144 +102,154 @@ function Dashboard() {
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
         className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-8"
       >
 
         <textarea
           className="w-full p-4 rounded-xl bg-black border border-[#1f1f2e]"
-          placeholder="Example: Delivery bahut late tha aur app crash ho gaya"
+          placeholder={`Enter feedback (single or multiple lines)
+
+Example:
+Delivery was late
+App crashed
+Payment failed`}
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
         />
 
         <button
           onClick={analyze}
-          className="mt-4 bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-xl"
+          disabled={loading}
+          className={`mt-4 px-6 py-2 rounded-xl text-white transition ${
+            loading
+              ? "bg-gray-600 cursor-not-allowed"
+              : "bg-purple-600 hover:bg-purple-700"
+          }`}
         >
-          Analyze Feedback
+          {loading ? "Analyzing..." : "Analyze Feedback"}
         </button>
 
       </motion.div>
 
+      {/* RESULTS */}
 
-      {/* Analysis Result */}
+      <div className="mt-6 space-y-4">
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        viewport={{ once: true }}
-        className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-6"
-      >
+        {results.map((r, i) => (
 
-        <h2 className="text-lg font-semibold mb-4">
-          Analysis Result
-        </h2>
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.1 }}
+            className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-5"
+          >
 
-        <p>
-          Sentiment:
-          <span className="ml-2 font-bold text-purple-400">
-            {sentiment}
-          </span>
-        </p>
+            <p className="text-gray-300 mb-3">
+              {r.feedback}
+            </p>
 
-        <p>
-          Feedback Type:
-          <span className="ml-2 font-bold text-purple-400">
-            {feedbackType}
-          </span>
-        </p>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
 
-        <p>
-          CSAT Score:
-          <span className="ml-2 font-bold text-purple-400">
-            {csat}%
-          </span>
-        </p>
+              <p>
+                Sentiment:
+                <span className="ml-2 text-purple-400 font-semibold">
+                  {r.sentiment}
+                </span>
+              </p>
 
-      </motion.div>
+              <p>
+                Type:
+                <span className="ml-2 text-purple-400 font-semibold">
+                  {r.feedback_type}
+                </span>
+              </p>
 
+              <p>
+                CSAT:
+                <span className="ml-2 text-purple-400 font-semibold">
+                  {r.csat_score}%
+                </span>
+              </p>
+
+            </div>
+
+          </motion.div>
+
+        ))}
+
+      </div>
 
       {/* Charts + Live Feed */}
 
       <div className="grid lg:grid-cols-2 gap-6 mt-8">
 
-        {/* Chart - Zoom In */}
-
         <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
         >
           <IndustryPieChart data={industryData} />
         </motion.div>
-
-
-        {/* Live Feed - Slide Left */}
 
         <motion.div
           initial={{ opacity: 0, x: 80 }}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
-          viewport={{ once: true }}
         >
           <LiveFeed stream={stream} />
         </motion.div>
 
       </div>
 
-
       {/* AI Recommendations */}
 
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
-        className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-8"
-      >
+      {results.length > 0 && (
 
-        <h2 className="text-lg font-semibold mb-4">
-          AI Recommendations
-        </h2>
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="bg-[#12121a] border border-[#1f1f2e] rounded-xl p-6 mt-8"
+        >
 
-        {recommendations.map((r, i) => (
+          <h2 className="text-lg font-semibold mb-4">
+            AI Recommendations
+          </h2>
 
-          <div key={i} className="mb-3">
+          {results[0].recommendations?.map((r:any, i:number) => (
 
-            <p className="text-purple-400 font-semibold">
-              {r.industry}
-            </p>
+            <div key={i} className="mb-3">
 
-            <p className="text-gray-300">
-              {r.recommendation}
-            </p>
+              <p className="text-purple-400 font-semibold">
+                {r.industry}
+              </p>
 
-          </div>
+              <p className="text-gray-300">
+                {r.recommendation}
+              </p>
 
-        ))}
+            </div>
 
-      </motion.div>
+          ))}
 
+        </motion.div>
 
-      {/* AI Insights - Slide Right */}
+      )}
+
+      {/* AI Insights */}
 
       <motion.div
         initial={{ opacity: 0, x: -80 }}
         whileInView={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
-        viewport={{ once: true }}
         className="mt-8"
       >
         <AIInsights />
       </motion.div>
 
     </div>
-
   )
-
 }
 
 export default Dashboard

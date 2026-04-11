@@ -9,6 +9,27 @@ import History from "./pages/History"
 import Reports from "./pages/Reports"
 import Settings from "./pages/Settings"
 import Profile from "./pages/Profile"
+import { useEffect } from "react"
+
+function CustomCursor(){
+
+  useEffect(() => {
+
+    const cursor = document.createElement("div")
+    cursor.className = "custom-cursor"
+    document.body.appendChild(cursor)
+
+    document.addEventListener("mousemove", (e) => {
+      cursor.style.left = e.clientX + "px"
+      cursor.style.top = e.clientY + "px"
+    })
+
+  }, [])
+
+  return null
+}
+
+export default CustomCursor
 
 function App(){
 

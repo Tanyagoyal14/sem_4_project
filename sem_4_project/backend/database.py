@@ -1,8 +1,18 @@
 from pymongo import MongoClient
 
-MONGO_URI = "mongodb+srv://ayushib905:root@cluster0.qnlntm5.mongodb.net/feedbackDB?retryWrites=true&w=majority"
+# -------------------------
+# CONNECT TO LOCAL MONGODB
+# -------------------------
 
-client = MongoClient(MONGO_URI)
+client = MongoClient("mongodb://localhost:27017/")
 
-db = client["feedbackDB"]
-collection = db["feedbacks"]
+db = client["feedback_db"]
+
+# -------------------------
+# COLLECTIONS
+# -------------------------
+
+feedback_collection = db["feedback"]
+profile_collection = db["profiles"]
+
+print("✅ MongoDB Connected")

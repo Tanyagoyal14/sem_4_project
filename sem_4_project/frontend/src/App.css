@@ -40,3 +40,14 @@
 .read-the-docs {
   color: #888;
 }
+.custom-cursor {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  background: rgba(168,85,247,0.8);
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 20px rgba(168,85,247,0.8);
+  z-index: 9999;
+}

@@ -6,6 +6,7 @@ from transformers import pipeline
 from datetime import datetime, timedelta
 from fastapi.encoders import jsonable_encoder
 import pandas as pd
+from typing import Optional, List
 
 # 🔥 MongoDB imports
 from database import feedback_collection, profile_collection
@@ -29,7 +30,8 @@ app.add_middleware(
 # -------------------------
 
 class FeedbackRequest(BaseModel):
-    feedback: str
+    feedback: Optional[str] = None
+    feedback: Optional[List[str]] = None
 
 class ProfileModel(BaseModel):
     name: str
@@ -69,84 +71,71 @@ feedback_types = [
 @app.post("/analyze-feedback")
 def analyze_feedback(request: FeedbackRequest):
 
-    text = request.feedback
+    # 🔥 HANDLE BOTH INPUT TYPES
+    if request.feedback:
+        feedback_list = [request.feedback]
 
-    # 1️⃣ Sentiment
-    sentiment_result = sentiment_model(text)[0]
-    sentiment = sentiment_result["label"].capitalize()
-    confidence = sentiment_result["score"]
+    elif request.feedbacks:
+        feedback_list = request.feedbacks
 
-    # 2️⃣ Industry classification
-    industry_result = classifier(text, industries)
+    else:
+        return {"error": "No feedback provided"}
 
-    top_industries = [
-        {
-            "industry": label,
-            "confidence": round(score * 100, 2)
-        }
-        for label, score in zip(
-            industry_result["labels"],
-            industry_result["scores"]
-        )
-    ][:3]
+    results = []
 
-    # 3️⃣ Complaint detection
-    type_result = classifier(text, feedback_types)
-    feedback_type = type_result["labels"][0]
+    for text in feedback_list:
 
-    # 4️⃣ Recommendation
-    recommendation_map = {
-        "Food Delivery": "Improve delivery speed and tracking",
-        "Technology": "Fix app crashes and improve performance",
-        "Banking": "Improve transaction reliability",
-        "E-commerce": "Improve product quality and returns",
-        "Healthcare": "Improve response time and support",
-        "Education": "Enhance learning experience",
-        "Retail": "Improve customer support",
-        "Travel": "Improve booking experience",
-        "Telecom": "Improve network stability"
-    }
+        # ---------------- SENTIMENT ----------------
+        sentiment_result = sentiment_model(text)[0]
+        sentiment = sentiment_result["label"].capitalize()
+        confidence = sentiment_result["score"]
 
-    recommendations = []
+        # ---------------- INDUSTRY ----------------
+        industry_result = classifier(text, industries)
 
-    if top_industries:
-        industry_name = top_industries[0]["industry"]
-        recommendations.append({
-            "industry": industry_name,
-            "recommendation": recommendation_map.get(
-                industry_name,
-                "Improve overall service quality"
+        top_industries = [
+            {
+                "industry": label,
+                "confidence": round(score * 100, 2)
+            }
+            for label, score in zip(
+                industry_result["labels"],
+                industry_result["scores"]
             )
+        ][:3]
+
+        # ---------------- TYPE ----------------
+        type_result = classifier(text, feedback_types)
+        feedback_type = type_result["labels"][0]
+
+        # ---------------- CSAT ----------------
+        csat_score = (
+            100 if sentiment == "Positive"
+            else 50 if sentiment == "Neutral"
+            else 30
+        )
+
+        # ---------------- SAVE ----------------
+        feedback_collection.insert_one({
+            "feedback": text,
+            "sentiment": sentiment,
+            "confidence": confidence,
+            "top_industries": top_industries,
+            "feedback_type": feedback_type,
+            "timestamp": datetime.now()
         })
 
-    # 5️⃣ CSAT calculation
-    csat_score = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
-
-    # -------------------------
-    # SAVE TO MONGODB
-    # -------------------------
-
-    feedback_collection.insert_one({
-        "feedback": text,
-        "sentiment": sentiment,
-        "confidence": confidence,
-        "top_industries": top_industries,
-        "feedback_type": feedback_type,
-        "recommendations": recommendations,
-        "timestamp": datetime.now()
-    })
-
-    # -------------------------
-    # RESPONSE
-    # -------------------------
+        results.append({
+            "feedback": text,
+            "sentiment": sentiment,
+            "top_industries": top_industries,
+            "feedback_type": feedback_type,
+            "csat_score": csat_score
+        })
 
     return {
-        "sentiment": sentiment,
-        "confidence": confidence,
-        "top_industries": top_industries,
-        "feedback_type": feedback_type,
-        "recommendations": recommendations,
-        "csat_score": csat_score
+        "results": results,
+        "total": len(results)
     }
 
 # -------------------------

@@ -1,23 +1,23 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from transformers import pipeline
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Optional, List
 
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
 import pandas as pd
-from reportlab.pdfgen import canvas
+from reportlab.platypus import SimpleDocTemplate, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 
 # -----------------------------
-# FastAPI Setup
+# APP SETUP
 # -----------------------------
 
-app = FastAPI(
-    title="AI Feedback Intelligence System",
-    version="6.0"
-)
+app = FastAPI(title="AI Feedback Intelligence System", version="7.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,8 +27,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+print("🔥 NEW MAIN.PY LOADED 🔥")
+
 # -----------------------------
-# Models
+# MODELS
+# -----------------------------
+
+class FeedbackRequest(BaseModel):
+    feedback: Optional[str] = None
+    feedbacks: Optional[List[str]] = None
+
+# -----------------------------
+# AI MODELS
 # -----------------------------
 
 sentiment_model = pipeline(
@@ -36,310 +46,190 @@ sentiment_model = pipeline(
     model="cardiffnlp/twitter-roberta-base-sentiment"
 )
 
-industry_classifier = pipeline(
-    "zero-shot-classification",
-    model="facebook/bart-large-mnli"
-)
-
-complaint_classifier = pipeline(
+classifier = pipeline(
     "zero-shot-classification",
     model="facebook/bart-large-mnli"
 )
 
 # -----------------------------
-# Labels
+# LABELS
 # -----------------------------
 
-INDUSTRY_LABELS = [
-    "E-commerce",
-    "Banking",
-    "Healthcare",
-    "Education",
-    "Food Delivery",
-    "Travel",
-    "Technology",
-    "Telecom",
-    "Retail",
-    "Customer Support"
+INDUSTRIES = [
+    "E-commerce", "Banking", "Healthcare", "Education",
+    "Food Delivery", "Travel", "Technology", "Telecom",
+    "Retail", "Customer Support"
 ]
 
-FEEDBACK_TYPES = [
-    "Complaint",
-    "Suggestion",
-    "Praise",
-    "Question"
-]
+FEEDBACK_TYPES = ["Complaint", "Suggestion", "Praise", "Question"]
 
 # -----------------------------
-# Recommendations
-# -----------------------------
-
-INDUSTRY_RECOMMENDATIONS = {
-
-    "E-commerce": "Improve website speed and payment gateway reliability.",
-    "Banking": "Improve transaction reliability and security.",
-    "Healthcare": "Improve appointment scheduling systems.",
-    "Education": "Improve video streaming stability.",
-    "Food Delivery": "Improve delivery tracking and packaging quality.",
-    "Travel": "Improve booking confirmation reliability.",
-    "Technology": "Fix app crashes and improve system performance.",
-    "Telecom": "Improve network stability and reduce signal drops.",
-    "Retail": "Improve checkout speed and inventory accuracy.",
-    "Customer Support": "Improve response time and support quality."
-}
-
-# -----------------------------
-# Storage
+# STORAGE
 # -----------------------------
 
 feedback_history = []
 
 # -----------------------------
-# Request Schema
+# UTIL FUNCTIONS
 # -----------------------------
 
-class FeedbackRequest(BaseModel):
-    feedback: str
-
-
-# -----------------------------
-# Utility Functions
-# -----------------------------
-
-def translate_to_english(text):
-
+def translate(text):
     try:
-
-        lang = detect(text)
-
-        if lang != "en":
-
-            translated = GoogleTranslator(
-                source="auto",
-                target="en"
-            ).translate(text)
-
-            return translated
-
+        if detect(text) != "en":
+            return GoogleTranslator(source="auto", target="en").translate(text)
     except:
         pass
-
     return text
 
 
-def detect_feedback_type(text):
+def get_sentiment(text):
+    result = sentiment_model(text)[0]
 
-    result = complaint_classifier(
-        text,
-        FEEDBACK_TYPES
-    )
+    label = result["label"]
 
-    return {
-        "type": result["labels"][0],
-        "confidence": round(result["scores"][0], 3)
-    }
+    if label == "LABEL_0":
+        return "Negative"
+    elif label == "LABEL_1":
+        return "Neutral"
+    return "Positive"
 
 
 def calculate_csat():
-
-    if len(feedback_history) == 0:
+    if not feedback_history:
         return 0
 
-    positive = sum(
-        1 for f in feedback_history
-        if f["sentiment"] == "Positive"
-    )
-
-    total = len(feedback_history)
-
-    return round((positive / total) * 100, 2)
-
+    positive = sum(1 for f in feedback_history if f["sentiment"] == "Positive")
+    return round((positive / len(feedback_history)) * 100, 2)
 
 # -----------------------------
-# Routes
+# HOME
 # -----------------------------
 
 @app.get("/")
 def home():
-    return {"status": "AI Feedback System Running"}
+    return {"status": "Backend Running 🚀"}
 
-
-# MAIN ANALYSIS ROUTE
+# -----------------------------
+# ANALYZE FEEDBACK
+# -----------------------------
 
 @app.post("/analyze-feedback")
 def analyze_feedback(request: FeedbackRequest):
 
-    original_text = request.feedback
+    # 🔥 HANDLE BOTH INPUT TYPES
+    if request.feedback:
+        feedback_list = [request.feedback]
 
-    translated_text = translate_to_english(original_text)
+    elif request.feedbacks:
+        feedback_list = request.feedbacks
 
-    # -------------------------
-    # Sentiment Analysis
-    # -------------------------
-
-    sentiment_result = sentiment_model(translated_text)[0]
-
-    sentiment_label = sentiment_result["label"]
-    sentiment_score = round(sentiment_result["score"], 3)
-
-    if sentiment_label == "LABEL_0":
-        sentiment_label = "Negative"
-    elif sentiment_label == "LABEL_1":
-        sentiment_label = "Neutral"
     else:
-        sentiment_label = "Positive"
+        return {"error": "No feedback provided"}
 
-    # -------------------------
-    # Complaint Detection
-    # -------------------------
+    results = []
 
-    feedback_type = detect_feedback_type(translated_text)
+    for text in feedback_list:
 
-    # -------------------------
-    # Industry Prediction
-    # -------------------------
+        translated = translate(text)
 
-    industry_result = industry_classifier(
-        translated_text,
-        INDUSTRY_LABELS,
-        multi_label=True
-    )
+        sentiment = get_sentiment(translated)
 
-    labels = industry_result["labels"]
-    scores = industry_result["scores"]
+        # Industry
+        # Industry classification
+        industry_result = classifier(
+    translated,
+    candidate_labels=INDUSTRIES
+)
 
-    industries = []
+        labels = industry_result.get("labels", [])
+        scores = industry_result.get("scores", [])
 
-    for label, score in zip(labels, scores):
+        top_industries = [
+            {"industry": l, "confidence": round(s, 3)}
+            for l, s in zip(labels, scores)
+        ][:3]
 
-        industries.append({
-            "industry": label,
-            "confidence": round(score, 3)
+# Feedback type
+        type_result = classifier(
+            translated,
+            candidate_labels=FEEDBACK_TYPES
+        )
+
+        feedback_type = type_result.get("labels", ["Unknown"])[0]
+
+        csat = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
+
+        # Save
+        feedback_history.append({
+            "feedback": translated,
+            "sentiment": sentiment,
+            "type": feedback_type,
+            "timestamp": datetime.now().isoformat()
         })
 
-    industries = sorted(
-        industries,
-        key=lambda x: x["confidence"],
-        reverse=True
-    )
-
-    top_industries = industries[:3]
-
-    # -------------------------
-    # Recommendations
-    # -------------------------
-
-    recommendations = []
-
-    for item in top_industries:
-
-        industry = item["industry"]
-
-        if industry in INDUSTRY_RECOMMENDATIONS:
-
-            recommendations.append({
-                "industry": industry,
-                "recommendation": INDUSTRY_RECOMMENDATIONS[industry]
-            })
-
-    # -------------------------
-    # Save Feedback
-    # -------------------------
-
-    feedback_history.append({
-
-        "feedback": translated_text,
-        "sentiment": sentiment_label,
-        "type": feedback_type["type"],
-        "timestamp": datetime.now().isoformat()
-
-    })
-
-    csat = calculate_csat()
-
-    # -------------------------
-    # Response
-    # -------------------------
+        results.append({
+            "feedback": text,
+            "translated": translated,
+            "sentiment": sentiment,
+            "feedback_type": feedback_type,
+            "top_industries": top_industries,
+            "csat_score": csat
+        })
 
     return {
-
-        "original_feedback": original_text,
-        "translated_feedback": translated_text,
-
-        "sentiment": sentiment_label,
-        "sentiment_confidence": sentiment_score,
-
-        "feedback_type": feedback_type["type"],
-        "feedback_type_confidence": feedback_type["confidence"],
-
-        "top_industries": top_industries,
-
-        "recommendations": recommendations,
-
-        "csat_score": csat,
-
-        "timestamp": datetime.now().isoformat()
-
+        "results": results,
+        "total": len(results)
     }
 
-
 # -----------------------------
-# FEEDBACK HISTORY
+# HISTORY
 # -----------------------------
 
 @app.get("/feedback-history")
-def get_feedback_history():
-
-    return {
-        "history": feedback_history
-    }
-
+def get_history():
+    return {"history": feedback_history}
 
 # -----------------------------
-# EXPORT REPORTS
+# DOWNLOAD REPORT
 # -----------------------------
 
-@app.get("/export/csv")
-def export_csv():
+@app.get("/download-weekly-report")
+def download_report(format: str = "csv"):
+
+    if not feedback_history:
+        return {"error": "No data available"}
 
     df = pd.DataFrame(feedback_history)
 
-    file_path = "feedback_report.csv"
+    file_path = f"report.{format}"
 
-    df.to_csv(file_path, index=False)
+    # CSV
+    if format == "csv":
+        df.to_csv(file_path, index=False)
 
-    return {"message": "CSV report generated"}
+    # Excel
+    elif format == "excel":
+        df.to_excel(file_path, index=False)
 
+    # PDF
+    elif format == "pdf":
 
-@app.get("/export/excel")
-def export_excel():
+        doc = SimpleDocTemplate(file_path)
+        styles = getSampleStyleSheet()
 
-    df = pd.DataFrame(feedback_history)
+        content = []
 
-    file_path = "feedback_report.xlsx"
+        for row in feedback_history[:20]:
+            text = f"""
+            Feedback: {row['feedback']}<br/>
+            Sentiment: {row['sentiment']}<br/>
+            Type: {row['type']}<br/><br/>
+            """
+            content.append(Paragraph(text, styles["Normal"]))
 
-    df.to_excel(file_path, index=False)
+        doc.build(content)
 
-    return {"message": "Excel report generated"}
+    else:
+        return {"error": "Invalid format"}
 
-
-@app.get("/export/pdf")
-def export_pdf():
-
-    file_path = "feedback_report.pdf"
-
-    c = canvas.Canvas(file_path)
-
-    y = 800
-
-    for item in feedback_history:
-
-        text = f"{item['feedback']} | {item['sentiment']} | {item['type']}"
-
-        c.drawString(50, y, text)
-
-        y -= 20
-
-    c.save()
-
-    return {"message": "PDF report generated"}
+    return FileResponse(path=file_path, filename=file_path)
