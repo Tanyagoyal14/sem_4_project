@@ -113,32 +113,6 @@ Export insights as:
 
 ---
 
-# ⚙️ System Workflow
-
-```
-User Input (Text / CSV)
-        ↓
-Frontend (React Dashboard)
-        ↓
-FastAPI Backend
-        ↓
-Language Detection
-        ↓
-Translation (if Hinglish)
-        ↓
-Batch AI Processing ⚡
-        ↓
-Sentiment + Classification
-        ↓
-CSAT Calculation
-        ↓
-Insights & Recommendations
-        ↓
-Dashboard Visualization
-```
-
----
-
 # 🔄 System Flowchart
 
 <p align="center">
