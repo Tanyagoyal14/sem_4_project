@@ -12,6 +12,7 @@ from langdetect import detect
 from deep_translator import GoogleTranslator
 
 import pandas as pd
+from fastapi import UploadFile, File
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
@@ -23,7 +24,7 @@ app = FastAPI(title="AI Feedback Intelligence System", version="7.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -183,6 +184,62 @@ def analyze_feedback(request: FeedbackRequest):
         "total": len(results)
     }
 
+import pandas as pd
+from fastapi import UploadFile, File
+
+@app.post("/upload-csv")
+async def upload_csv(file: UploadFile = File(...)):
+
+    print("CSV endpoint hit")  # DEBUG
+
+    df = pd.read_csv(file.file)
+
+    if 'feedback' not in df.columns:
+        return {"error": "CSV must contain 'feedback' column"}
+
+    feedbacks = df['feedback'].dropna().astype(str).tolist()
+
+    results = []
+
+    for text in feedbacks:
+
+        translated = translate(text)
+        sentiment = get_sentiment(translated)
+
+        # Industry classification
+        industry_result = classifier(
+            translated,
+            candidate_labels=INDUSTRIES
+        )
+
+        labels = industry_result.get("labels", [])
+        scores = industry_result.get("scores", [])
+
+        top_industries = [
+            {"industry": l, "confidence": round(s, 3)}
+            for l, s in zip(labels, scores)
+        ][:3]
+
+        # Feedback type
+        type_result = classifier(
+            translated,
+            candidate_labels=FEEDBACK_TYPES
+        )
+
+        feedback_type = type_result.get("labels", ["Unknown"])[0]
+
+        csat = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
+
+        results.append({
+            "feedback": text,
+            "translated": translated,
+            "sentiment": sentiment,
+            "feedback_type": feedback_type,
+            "top_industries": top_industries,
+            "csat_score": csat
+        })
+
+    return {"results": results}
 # -----------------------------
 # HISTORY
 # -----------------------------
