@@ -139,6 +139,14 @@ Dashboard Visualization
 
 ---
 
+# 🔄 System Flowchart
+
+<p align="center">
+  <img src="./assets/flowchart.png" width="750"/>
+</p>
+
+<p align="center"><i>End-to-end AI feedback processing pipeline</i></p>
+
 # 🧠 AI Models Used
 
 ## Sentiment Analysis
