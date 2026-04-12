@@ -20,6 +20,20 @@ function Reports() {
     }
   ]
 
+  // 🔥 DOWNLOAD FUNCTION
+  const downloadReport = (format: string) => {
+
+    const url = `http://localhost:8002/download-weekly-report?format=${format}`
+
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `report.${format}`
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
 
     <motion.div
@@ -45,7 +59,6 @@ function Reports() {
           >
 
             {/* LEFT TEXT */}
-
             <div>
               <h3 className="font-semibold text-lg">
                 {r.title}
@@ -57,18 +70,13 @@ function Reports() {
             </div>
 
             {/* DOWNLOAD BUTTON */}
-
             <motion.button
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() =>
-                window.open(
-                  `http://localhost:8002/download-weekly-report?format=pdf`
-                )
-              }
+              onClick={() => downloadReport(r.format)}   // ✅ FIXED
               className="bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-2 rounded-xl shadow-lg hover:shadow-purple-500/50 transition"
             >
-              Download
+              Download {r.format.toUpperCase()}
             </motion.button>
 
           </motion.div>

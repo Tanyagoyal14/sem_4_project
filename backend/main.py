@@ -1,26 +1,28 @@
-
-
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from transformers import pipeline
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional, List
 
 from langdetect import detect
 from deep_translator import GoogleTranslator
 
 import pandas as pd
-from fastapi import UploadFile, File
-from reportlab.platypus import SimpleDocTemplate, Paragraph
-from reportlab.lib.styles import getSampleStyleSheet
+import os
+import matplotlib.pyplot as plt
 
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import Image
+from reportlab.lib.units import inch
 # -----------------------------
 # APP SETUP
 # -----------------------------
 
-app = FastAPI(title="AI Feedback Intelligence System", version="7.0")
+app = FastAPI(title="AI Feedback Intelligence System", version="8.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,7 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-print("🔥 NEW MAIN.PY LOADED 🔥")
+print("🔥 UPDATED MAIN.PY LOADED 🔥")
 
 # -----------------------------
 # MODELS
@@ -85,24 +87,12 @@ def translate(text):
     return text
 
 
-def get_sentiment(text):
-    result = sentiment_model(text)[0]
-
-    label = result["label"]
-
+def get_sentiment(label):
     if label == "LABEL_0":
         return "Negative"
     elif label == "LABEL_1":
         return "Neutral"
     return "Positive"
-
-
-def calculate_csat():
-    if not feedback_history:
-        return 0
-
-    positive = sum(1 for f in feedback_history if f["sentiment"] == "Positive")
-    return round((positive / len(feedback_history)) * 100, 2)
 
 # -----------------------------
 # HOME
@@ -119,52 +109,40 @@ def home():
 @app.post("/analyze-feedback")
 def analyze_feedback(request: FeedbackRequest):
 
-    # 🔥 HANDLE BOTH INPUT TYPES
     if request.feedback:
-        feedback_list = [request.feedback]
-
+        texts = [request.feedback]
     elif request.feedbacks:
-        feedback_list = request.feedbacks
-
+        texts = request.feedbacks
     else:
         return {"error": "No feedback provided"}
 
+    translated = [translate(t) for t in texts]
+
+    sentiments = sentiment_model(translated, batch_size=8)
+
+    industry_results = classifier(translated, candidate_labels=INDUSTRIES, batch_size=4)
+    type_results = classifier(translated, candidate_labels=FEEDBACK_TYPES, batch_size=8)
+
     results = []
 
-    for text in feedback_list:
+    for i, text in enumerate(texts):
 
-        translated = translate(text)
-
-        sentiment = get_sentiment(translated)
-
-        # Industry
-        # Industry classification
-        industry_result = classifier(
-    translated,
-    candidate_labels=INDUSTRIES
-)
-
-        labels = industry_result.get("labels", [])
-        scores = industry_result.get("scores", [])
+        sentiment = get_sentiment(sentiments[i]["label"])
 
         top_industries = [
             {"industry": l, "confidence": round(s, 3)}
-            for l, s in zip(labels, scores)
+            for l, s in zip(
+                industry_results[i]["labels"],
+                industry_results[i]["scores"]
+            )
         ][:3]
 
-# Feedback type
-        type_result = classifier(
-            translated,
-            candidate_labels=FEEDBACK_TYPES
-        )
-
-        feedback_type = type_result.get("labels", ["Unknown"])[0]
+        feedback_type = type_results[i]["labels"][0]
 
         csat = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
 
-        # Save
         feedback_history.append({
-            "feedback": translated,
+            "feedback": translated[i],
             "sentiment": sentiment,
             "type": feedback_type,
             "timestamp": datetime.now().isoformat()
@@ -172,79 +150,7 @@ def analyze_feedback(request: FeedbackRequest):
 
         results.append({
             "feedback": text,
-            "translated": translated,
-            "sentiment": sentiment,
-            "feedback_type": feedback_type,
-            "top_industries": top_industries,
-            "csat_score": csat
-        })
-
-    return {
-        "results": results,
-        "total": len(results)
-    }
-
-import pandas as pd
-from fastapi import UploadFile, File
-
-@app.post("/upload-csv")
-async def upload_csv(file: UploadFile = File(...)):
-
-    df = pd.read_csv(file.file)
-
-    if 'feedback' not in df.columns:
-        return {"error": "CSV must contain 'feedback' column"}
-
-    feedbacks = df['feedback'].dropna().astype(str).tolist()
-
-    # 🔥 STEP 1: Translate all
-    translated_texts = [translate(t) for t in feedbacks]
-
-    # 🔥 STEP 2: Batch sentiment
-    sentiment_outputs = sentiment_model(translated_texts, batch_size=16)
-
-    # 🔥 STEP 3: Batch classification
-    industry_outputs = classifier(
-        translated_texts,
-        candidate_labels=INDUSTRIES,
-        batch_size=8
-    )
-
-    type_outputs = classifier(
-        translated_texts,
-        candidate_labels=FEEDBACK_TYPES,
-        batch_size=32
-    )
-
-    results = []
-
-    for i, text in enumerate(feedbacks):
-
-        # Sentiment
-        label = sentiment_outputs[i]["label"]
-        sentiment = (
-            "Negative" if label == "LABEL_0"
-            else "Neutral" if label == "LABEL_1"
-            else "Positive"
-        )
-
-        # Industry
-        labels = industry_outputs[i]["labels"]
-        scores = industry_outputs[i]["scores"]
-
-        top_industries = [
-            {"industry": l, "confidence": round(s, 3)}
-            for l, s in zip(labels, scores)
-        ][:3]
-
-        # Feedback type
-        feedback_type = type_outputs[i]["labels"][0]
-
-        csat = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
-
-        results.append({
-            "feedback": text,
-            "translated": translated_texts[i],
+            "translated": translated[i],
             "sentiment": sentiment,
             "feedback_type": feedback_type,
             "top_industries": top_industries,
@@ -252,6 +158,46 @@ async def upload_csv(file: UploadFile = File(...)):
         })
 
     return {"results": results}
+
+# -----------------------------
+# CSV UPLOAD (FAST)
+# -----------------------------
+
+@app.post("/upload-csv")
+async def upload_csv(file: UploadFile = File(...)):
+
+    df = pd.read_csv(file.file)
+
+    if "feedback" not in df.columns:
+        return {"error": "CSV must contain 'feedback' column"}
+
+    texts = df["feedback"].dropna().astype(str).tolist()
+
+    translated = [translate(t) for t in texts]
+
+    sentiments = sentiment_model(translated, batch_size=16)
+    industry_results = classifier(translated, candidate_labels=INDUSTRIES, batch_size=8)
+    type_results = classifier(translated, candidate_labels=FEEDBACK_TYPES, batch_size=16)
+
+    results = []
+
+    for i, text in enumerate(texts):
+
+        sentiment = get_sentiment(sentiments[i]["label"])
+
+        feedback_type = type_results[i]["labels"][0]
+
+        results.append({
+            "feedback": text,
+            "translated": translated[i],
+            "sentiment": sentiment,
+            "feedback_type": feedback_type,
+            "top_industries": [],
+            "csat_score": 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
+        })
+
+    return {"results": results}
+
 # -----------------------------
 # HISTORY
 # -----------------------------
@@ -272,35 +218,144 @@ def download_report(format: str = "csv"):
 
     df = pd.DataFrame(feedback_history)
 
-    file_path = f"report.{format}"
-
-    # CSV
+    # ---------------- CSV ----------------
     if format == "csv":
+        file_path = "report.csv"
         df.to_csv(file_path, index=False)
 
-    # Excel
+    # ---------------- EXCEL ----------------
     elif format == "excel":
+        file_path = "report.xlsx"
         df.to_excel(file_path, index=False)
 
-    # PDF
+    # ---------------- PDF (🔥 PREMIUM) ----------------
+    
     elif format == "pdf":
 
-        doc = SimpleDocTemplate(file_path)
+        file_path = "report.pdf"
+
+        doc = SimpleDocTemplate(file_path, pagesize=letter)
         styles = getSampleStyleSheet()
 
         content = []
 
-        for row in feedback_history[:20]:
-            text = f"""
-            Feedback: {row['feedback']}<br/>
-            Sentiment: {row['sentiment']}<br/>
-            Type: {row['type']}<br/><br/>
-            """
-            content.append(Paragraph(text, styles["Normal"]))
+        # -----------------------------
+        # HEADER (LOGO + BRAND)
+        # -----------------------------
+        logo_path = "logo.png"
 
+        if os.path.exists(logo_path):
+            content.append(Image(logo_path, width=1.2*inch, height=1.2*inch))
+
+        content.append(Paragraph("<b>SENTILYTICS</b>", styles["Title"]))
+        content.append(Paragraph("<i>Turn Feedback into Intelligence</i>", styles["Normal"]))
+        content.append(Spacer(1, 10))
+
+        content.append(Paragraph(
+            f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            styles["Normal"]
+        ))
+        content.append(Spacer(1, 20))
+
+        # -----------------------------
+        # DATA PREP
+        # -----------------------------
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df["date"] = df["timestamp"].dt.date
+
+        pos = len(df[df["sentiment"] == "Positive"])
+        neg = len(df[df["sentiment"] == "Negative"])
+        neu = len(df[df["sentiment"] == "Neutral"])
+        total = len(df)
+
+        # -----------------------------
+        # AI SUMMARY
+        # -----------------------------
+        if pos > neg:
+            insight = "Customers are generally satisfied. Focus on maintaining quality."
+        else:
+            insight = "High negative feedback detected. Immediate improvements required."
+
+        summary = f"""
+        Total Feedback: {total}<br/>
+        Positive: {pos} | Negative: {neg} | Neutral: {neu}<br/>
+        Insight: {insight}
+        """
+
+        content.append(Paragraph("<b>AI Executive Summary</b>", styles["Heading2"]))
+        content.append(Paragraph(summary, styles["Normal"]))
+        content.append(Spacer(1, 20))
+
+        # -----------------------------
+        # 📊 SENTIMENT BAR CHART
+        # -----------------------------
+        plt.figure()
+        plt.bar(["Positive", "Negative", "Neutral"], [pos, neg, neu])
+        plt.title("Sentiment Distribution")
+
+        bar_chart = "bar_chart.png"
+        plt.savefig(bar_chart)
+        plt.close()
+
+        content.append(Paragraph("<b>Sentiment Distribution</b>", styles["Heading2"]))
+        content.append(Image(bar_chart, width=400, height=250))
+        content.append(Spacer(1, 20))
+
+        # -----------------------------
+        # 📈 WEEKLY TREND
+        # -----------------------------
+        trend = df.groupby(["date", "sentiment"]).size().unstack(fill_value=0)
+
+        plt.figure()
+        for col in trend.columns:
+            plt.plot(trend.index, trend[col], label=col)
+
+        plt.legend()
+        plt.title("Weekly Sentiment Trend")
+
+        line_chart = "line_chart.png"
+        plt.savefig(line_chart)
+        plt.close()
+
+        content.append(Paragraph("<b>Weekly Trend Analysis</b>", styles["Heading2"]))
+        content.append(Image(line_chart, width=400, height=250))
+        content.append(Spacer(1, 20))
+
+        # -----------------------------
+        # GROUPED FEEDBACK
+        # -----------------------------
+        def add_section(title, data, color):
+            content.append(Paragraph(f"<b>{title}</b>", styles["Heading2"]))
+            content.append(Spacer(1, 10))
+
+            for row in data[:10]:
+                text = f"<font color='{color}'>{row['feedback']}</font>"
+                content.append(Paragraph(text, styles["Normal"]))
+                content.append(Spacer(1, 5))
+
+            content.append(Spacer(1, 15))
+
+        add_section("Positive Feedback", df[df["sentiment"] == "Positive"].to_dict("records"), "green")
+        add_section("Neutral Feedback", df[df["sentiment"] == "Neutral"].to_dict("records"), "orange")
+        add_section("Negative Feedback", df[df["sentiment"] == "Negative"].to_dict("records"), "red")
+
+        # -----------------------------
+        # BUILD PDF
+        # -----------------------------
         doc.build(content)
 
-    else:
-        return {"error": "Invalid format"}
+        # -----------------------------
+        # CLEANUP
+        # -----------------------------
+        for f in [bar_chart, line_chart]:
+            if os.path.exists(f):
+                os.remove(f)
 
-    return FileResponse(path=file_path, filename=file_path)
+        # -----------------------------
+        # RETURN FILE
+        # -----------------------------
+        return FileResponse(
+            path=file_path,
+            filename="Sentilytics_Report.pdf",
+            media_type="application/pdf"
+        )
