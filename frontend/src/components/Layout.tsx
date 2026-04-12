@@ -1,26 +1,40 @@
+import CommandPalette from "../components/CommandPalette"
+import Sidebar from "../components/Sidebar"
 import { Outlet } from "react-router-dom"
-import Sidebar from "./Sidebar"
+import { useState } from "react"
 
-function Layout(){
+function Layout() {
 
-  return(
+  const [collapsed, setCollapsed] = useState(false)
 
-    <div className="flex min-h-screen">
+  return (
 
-      {/* Sidebar */}
-      <Sidebar/>
+    <div className="flex">
 
-      {/* Main content */}
-      <div className="flex-1 overflow-y-auto">
+      {/* 🔥 SIDEBAR */}
+      <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
 
-        <Outlet/>
+      {/* 🔥 MAIN CONTENT */}
+      <div
+        className="w-full min-h-screen bg-[#0b0b0f] transition-all duration-300"
+        style={{
+          marginLeft: collapsed ? "80px" : "256px"
+        }}
+      >
+
+        {/* 🔥 COMMAND PALETTE (GLOBAL) */}
+        <CommandPalette />
+
+        {/* PAGE CONTENT */}
+        <div className="p-6">
+          <Outlet />
+        </div>
 
       </div>
 
     </div>
 
   )
-
 }
 
 export default Layout

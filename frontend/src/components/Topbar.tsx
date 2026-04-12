@@ -1,12 +1,13 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import logo from "../assets/logo.png"
 
 function Topbar() {
 
   const navigate = useNavigate()
 
-  const [showNotifications,setShowNotifications] = useState(false)
-  const [showAdmin,setShowAdmin] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
 
   const notifications = [
     "New negative feedback detected",
@@ -18,29 +19,39 @@ function Topbar() {
 
     <div className="flex justify-between items-center mb-6">
 
-      {/* Title */}
+      {/* 🔥 LOGO + TITLE */}
 
-      <div>
+      <div className="flex items-center gap-3">
 
-        <h1 className="text-2xl font-bold text-white">
-          AI Feedback Dashboard
-        </h1>
+        <img
+          src={logo}
+          alt="Sentilytics Logo"
+          className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]"
+        />
 
-        <p className="text-green-400 text-sm">
-          ● AI Models Running
-        </p>
+        <div>
+          <h1 className="text-xl font-bold text-white tracking-wide">
+            Sentilytics
+          </h1>
+
+          <p className="text-green-400 text-xs">
+            ● AI Models Running
+          </p>
+        </div>
 
       </div>
 
 
+      {/* RIGHT SIDE */}
+
       <div className="flex items-center gap-8">
 
-        {/* Notifications */}
+        {/* 🔔 Notifications */}
 
         <div className="relative">
 
           <button
-            onClick={()=>setShowNotifications(!showNotifications)}
+            onClick={() => setShowNotifications(!showNotifications)}
             className="relative text-xl text-white hover:text-pink-400 transition"
           >
 
@@ -52,7 +63,6 @@ function Topbar() {
 
           </button>
 
-
           {showNotifications && (
 
             <div className="absolute right-0 mt-3 w-64 bg-black border border-white/10 rounded-xl p-4 shadow-xl z-50">
@@ -61,7 +71,7 @@ function Topbar() {
                 Notifications
               </h3>
 
-              {notifications.map((n,i)=>(
+              {notifications.map((n, i) => (
 
                 <p
                   key={i}
@@ -79,16 +89,16 @@ function Topbar() {
         </div>
 
 
-        {/* Admin Menu */}
+        {/* 👤 Admin Menu */}
 
         <div className="relative">
 
           <button
-            onClick={()=>setShowAdmin(!showAdmin)}
+            onClick={() => setShowAdmin(!showAdmin)}
             className="flex items-center gap-2 hover:text-pink-400 transition"
           >
 
-            <div className="w-9 h-9 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center font-semibold">
+            <div className="w-9 h-9 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center font-semibold shadow-md">
               A
             </div>
 
@@ -98,21 +108,20 @@ function Topbar() {
 
           </button>
 
-
           {showAdmin && (
 
-            <div className="absolute right-0 mt-3 bg-black border border-white/10 rounded-xl p-4 w-40 shadow-xl">
+            <div className="absolute right-0 mt-3 bg-black border border-white/10 rounded-xl p-4 w-40 shadow-xl z-50">
 
               <p
                 className="cursor-pointer hover:text-pink-400 mb-2"
-                onClick={()=>navigate("/app/profile")}
+                onClick={() => navigate("/app/profile")}
               >
                 Profile
               </p>
 
               <p
                 className="cursor-pointer hover:text-pink-400 mb-2"
-                onClick={()=>navigate("/app/settings")}
+                onClick={() => navigate("/app/settings")}
               >
                 Settings
               </p>
