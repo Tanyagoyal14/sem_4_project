@@ -1,44 +1,62 @@
-# 🤖 AI Feedback Intelligence System
+# 🚀 Sentilytics
 
-Transform raw customer feedback into **actionable business insights** using **Artificial Intelligence, Natural Language Processing, and Interactive Dashboards**.
+### Turn Feedback into Intelligence
 
-This platform automatically analyzes feedback, detects sentiment, identifies industries, classifies complaints, and visualizes insights through a modern **AI analytics dashboard**.
+Sentilytics is an AI-powered feedback intelligence platform that transforms raw customer feedback into actionable business insights using **Natural Language Processing, Machine Learning, and Interactive Dashboards**.
 
 ---
 
-# 🚀 Project Overview
+# 🧠 Project Overview
 
-Businesses receive thousands of customer feedback messages from reviews, surveys, and support systems.
+Businesses receive thousands of feedback messages from users across reviews, surveys, and support systems.
 
 Manually analyzing this feedback is:
 
-❌ time consuming
-❌ inefficient
-❌ prone to missing insights
+❌ Time-consuming
+❌ Inefficient
+❌ Error-prone
 
-Our system solves this problem by using **AI models to analyze feedback automatically** and convert it into **visual business intelligence**.
+Sentilytics automates this process using AI to extract meaningful insights and visualize them in a modern dashboard.
 
 ---
 
-# 🎯 Key Features
+# ✨ Key Features
 
-### 🔍 AI Feedback Analysis
+## 🔍 AI Feedback Analysis
 
-The system automatically detects:
+Automatically detects:
 
-* Sentiment (Positive / Negative)
-* Industry related to feedback
+* Sentiment (Positive / Neutral / Negative)
+* Industry classification
 * Feedback type (Complaint, Suggestion, Praise, Question)
+* CSAT score
 
 ---
 
-### 🌐 Hinglish Support
+## 📂 CSV Upload & Bulk Processing
 
-The system supports **mixed Hindi-English feedback**.
+* Upload CSV files with multiple feedback entries
+* Supports batch processing for faster analysis ⚡
+* Optimized using transformer batch inference
+
+Example CSV format:
+
+```
+feedback
+Product acha hai
+App crash ho gaya
+Loved the experience
+```
+
+---
+
+## 🌐 Hinglish Support
+
+Supports mixed Hindi-English feedback.
 
 Example:
 
-```id="t7wzld"
+```
 Input:
 "ye app bahut slow hai"
 
@@ -46,166 +64,129 @@ Translated:
 "This app is very slow"
 ```
 
-The translated text is then analyzed by AI models.
-
 ---
 
-### 📊 AI Analytics Dashboard
+## 📊 AI Analytics Dashboard
 
-The React dashboard visualizes insights using:
+Interactive dashboard built with React:
 
-* Sentiment distribution charts
-* Industry prediction graphs
-* Complaint classification
-* CSAT (Customer Satisfaction Score)
+* Sentiment distribution
+* Industry insights
+* CSAT score tracking
 * Live feedback stream
+* AI-powered recommendations
 
 ---
 
-### 📈 Analytics Panel
+## 🧠 AI Recommendation Engine
 
-Provides deeper insights such as:
+Generates actionable insights:
 
-* Sentiment trends
-* Complaint statistics
-* Feedback analytics
-* AI generated insights
-
----
-
-### 🧠 AI Recommendation Engine
-
-Based on feedback analysis, the system suggests improvements.
-
-Example:
-
-```id="l5dmyd"
-Industry: Food Delivery
-
-Recommendation:
-Improve delivery tracking and reduce delays.
+```
+Industry: Food Delivery  
+Recommendation: Improve delivery tracking and reduce delays  
 ```
 
 ---
 
-### 🗂 Feedback History
+## 🗂 Feedback History
 
-Stores all analyzed feedback including:
+Stores analyzed feedback with:
 
-| Field         | Description                |
-| ------------- | -------------------------- |
-| Feedback Text | Original customer feedback |
-| Sentiment     | Positive or Negative       |
-| Industry      | Predicted industry         |
-| Feedback Type | Complaint / Suggestion     |
-| Timestamp     | Analysis time              |
-
----
-
-### 📄 Report Generation
-
-Export feedback insights as:
-
-* 📄 PDF reports
-* 📊 Excel files
-* 📑 CSV datasets
+| Field     | Description              |
+| --------- | ------------------------ |
+| Feedback  | Original input           |
+| Sentiment | AI prediction            |
+| Industry  | Top predicted industries |
+| Type      | Complaint / Suggestion   |
+| Timestamp | Processing time          |
 
 ---
 
-# 🧩 System Workflow
+## 📄 Report Generation
 
-```id="9q8zqg"
-User Feedback
-      ↓
-Frontend Dashboard (React)
-      ↓
+Export insights as:
+
+* CSV
+* Excel
+* PDF
+
+---
+
+# ⚙️ System Workflow
+
+```
+User Input (Text / CSV)
+        ↓
+Frontend (React Dashboard)
+        ↓
 FastAPI Backend
-      ↓
+        ↓
 Language Detection
-      ↓
+        ↓
 Translation (if Hinglish)
-      ↓
-Sentiment Analysis
-      ↓
-Industry Classification
-      ↓
-Complaint Detection
-      ↓
-CSAT Score Calculation
-      ↓
-AI Recommendations
-      ↓
+        ↓
+Batch AI Processing ⚡
+        ↓
+Sentiment + Classification
+        ↓
+CSAT Calculation
+        ↓
+Insights & Recommendations
+        ↓
 Dashboard Visualization
 ```
 
 ---
 
+# 🔄 System Flowchart
+
+<p align="center">
+  <img src="./assets/flowchart.png" width="750"/>
+</p>
+
+<p align="center"><i>End-to-end AI feedback processing pipeline</i></p>
+
 # 🧠 AI Models Used
 
-### Sentiment Analysis
+## Sentiment Analysis
 
-```id="x19i4j"
-distilbert-base-uncased-finetuned-sst-2-english
+```
+cardiffnlp/twitter-roberta-base-sentiment
 ```
 
-Detects whether feedback is **positive or negative**.
+* Detects Positive / Neutral / Negative sentiment
 
 ---
 
-### Industry Classification
+## Zero-Shot Classification
 
-```id="v3kmic"
+```
 facebook/bart-large-mnli
 ```
 
-Uses **zero-shot classification** to predict which industry the feedback belongs to.
+Used for:
 
-Example industries:
-
-* E-commerce
-* Banking
-* Healthcare
-* Education
-* Food Delivery
-* Technology
-* Telecom
-* Retail
-* Travel
-
----
-
-### Complaint Detection
-
-Also uses **BART MNLI** to classify feedback into:
-
-* Complaint
-* Suggestion
-* Praise
-* Question
+* Industry classification
+* Feedback type detection
 
 ---
 
 # 📊 Example Analysis
 
-Input Feedback:
+### Input
 
-```id="vvy98s"
-"The delivery was late and the app crashed during payment."
+```
+The delivery was late and the app crashed during payment.
 ```
 
-AI Output:
+### Output
 
-```id="mjv9np"
-Sentiment: Negative
-Industry: Food Delivery
-Feedback Type: Complaint
-CSAT Score: 72%
 ```
-
-Recommendation:
-
-```id="ui13qi"
-Improve delivery tracking and payment reliability
+Sentiment: Negative  
+Industry: Food Delivery  
+Feedback Type: Complaint  
+CSAT Score: 30%  
 ```
 
 ---
@@ -217,148 +198,139 @@ Improve delivery tracking and payment reliability
 * React
 * TypeScript
 * TailwindCSS
-* Recharts (data visualization)
-* React Router
-
----
+* Framer Motion
+* Recharts
 
 ## Backend
 
 * FastAPI
 * Python
 
----
-
 ## AI / NLP
 
 * HuggingFace Transformers
-* DistilBERT (Sentiment Analysis)
-* BART MNLI (Zero-Shot Classification)
-
----
+* RoBERTa (Sentiment Analysis)
+* BART MNLI (Classification)
 
 ## Translation
 
 * Deep Translator
-* Google Translate API
-
----
+* Langdetect
 
 ## Data Processing
 
 * Pandas
 * NumPy
 
----
-
-## Report Generation
+## Reports
 
 * ReportLab
 * OpenPyXL
 
-
+---
 
 # 📂 Project Structure
 
-```id="ysgbto"
-backend
+```
+backend/
 │
 ├── main.py
 ├── requirements.txt
 │
-frontend
+frontend/
 │
-├── src
-│   ├── components
-│   ├── pages
-│   ├── hooks
-│   ├── styles
+├── src/
+│   ├── components/
+│   ├── pages/
+│   ├── hooks/
+│   ├── styles/
 │   └── App.tsx
 ```
 
+---
 
+# ⚙️ Installation
 
-# ⚙ Installation
+## 1️⃣ Clone Repository
 
-### 1️⃣ Clone Repository
-
-```id="jz00v8"
-git clone https://github.com/yourusername/ai-feedback-intelligence.git
+```
+git clone https://github.com/yourusername/sentilytics.git
 ```
 
+---
 
+## 2️⃣ Backend Setup
 
-### 2️⃣ Install Backend Dependencies
-
-```id="ym2csi"
+```
+cd backend
 pip install -r requirements.txt
+uvicorn main:app --reload --port 8002
 ```
 
+---
 
+## 3️⃣ Frontend Setup
 
-### 3️⃣ Run Backend Server
-
-```id="4gyrqi"
-uvicorn main:app --port 8002 --reload
 ```
-
-
-
-### 4️⃣ Install Frontend Dependencies
-
-```id="mq2s34"
 cd frontend
 npm install
-```
-
-
-
-### 5️⃣ Start Frontend
-
-```id="8pbo2f"
 npm run dev
 ```
 
+---
 
+# 🎯 Target Audience
 
-# 👥 Target Audience
+* E-commerce platforms 🛒
+* Food delivery apps 🍔
+* Banking & fintech 🏦
+* Telecom services 📞
+* SaaS companies 💻
+* Customer support teams 📊
 
-This platform can be used by:
+---
 
-* 🛒 E-commerce companies
-* 🍔 Food delivery platforms
-* 🏦 Banking and fintech companies
-* 📞 Telecom services
-* 💻 SaaS companies
-* 📊 Customer support teams
+# ⚡ Performance Optimization
 
-Any organization that receives **large volumes of customer feedback** can benefit from this system.
+Sentilytics uses:
 
+* Batch inference for transformers ⚡
+* Optimized pipeline execution
+* Faster bulk feedback processing
+* Reduced latency for CSV uploads
 
+---
 
 # ✅ Advantages
 
-✔ Automated feedback analysis
-✔ Real-time sentiment detection
-✔ Hinglish feedback support
-✔ AI-powered insights
-✔ Interactive analytics dashboard
-✔ Exportable business reports
+✔ Automated feedback intelligence
+✔ Hinglish support 🇮🇳
+✔ Bulk + CSV processing
+✔ Real-time analytics dashboard
+✔ AI-driven recommendations
+✔ Exportable reports
 
-
+---
 
 # 🔮 Future Scope
 
-Possible improvements include:
+* Topic clustering
+* Real-time alerts
+* Multilingual expansion
+* Social media integration
+* AI summarization of feedback
+* Predictive CSAT trends
 
-* Topic clustering of feedback
-* Predictive customer satisfaction analysis
-* Social media review integration
-* Multilingual support
-* Real-time complaint alert system
-* AI-generated feedback summaries
+---
 
+# 👩‍💻 Team
+
+* Ayushi Bansal
+* Tanya Goyal
+* Tanisha Tayal
+
+---
 
 # 💡 Project Goal
 
-The goal of this system is to demonstrate how **Artificial Intelligence and Natural Language Processing can transform unstructured customer feedback into meaningful business intelligence.**
+To demonstrate how **AI + NLP can convert unstructured customer feedback into actionable business intelligence at scale**.
