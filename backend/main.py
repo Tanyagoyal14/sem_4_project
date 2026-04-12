@@ -190,8 +190,6 @@ from fastapi import UploadFile, File
 @app.post("/upload-csv")
 async def upload_csv(file: UploadFile = File(...)):
 
-    print("CSV endpoint hit")  # DEBUG
-
     df = pd.read_csv(file.file)
 
     if 'feedback' not in df.columns:
@@ -199,21 +197,40 @@ async def upload_csv(file: UploadFile = File(...)):
 
     feedbacks = df['feedback'].dropna().astype(str).tolist()
 
+    # 🔥 STEP 1: Translate all
+    translated_texts = [translate(t) for t in feedbacks]
+
+    # 🔥 STEP 2: Batch sentiment
+    sentiment_outputs = sentiment_model(translated_texts, batch_size=16)
+
+    # 🔥 STEP 3: Batch classification
+    industry_outputs = classifier(
+        translated_texts,
+        candidate_labels=INDUSTRIES,
+        batch_size=8
+    )
+
+    type_outputs = classifier(
+        translated_texts,
+        candidate_labels=FEEDBACK_TYPES,
+        batch_size=32
+    )
+
     results = []
 
-    for text in feedbacks:
+    for i, text in enumerate(feedbacks):
 
-        translated = translate(text)
-        sentiment = get_sentiment(translated)
-
-        # Industry classification
-        industry_result = classifier(
-            translated,
-            candidate_labels=INDUSTRIES
+        # Sentiment
+        label = sentiment_outputs[i]["label"]
+        sentiment = (
+            "Negative" if label == "LABEL_0"
+            else "Neutral" if label == "LABEL_1"
+            else "Positive"
         )
 
-        labels = industry_result.get("labels", [])
-        scores = industry_result.get("scores", [])
+        # Industry
+        labels = industry_outputs[i]["labels"]
+        scores = industry_outputs[i]["scores"]
 
         top_industries = [
             {"industry": l, "confidence": round(s, 3)}
@@ -221,18 +238,13 @@ async def upload_csv(file: UploadFile = File(...)):
         ][:3]
 
         # Feedback type
-        type_result = classifier(
-            translated,
-            candidate_labels=FEEDBACK_TYPES
-        )
-
-        feedback_type = type_result.get("labels", ["Unknown"])[0]
+        feedback_type = type_outputs[i]["labels"][0]
 
         csat = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
 
         results.append({
             "feedback": text,
-            "translated": translated,
+            "translated": translated_texts[i],
             "sentiment": sentiment,
             "feedback_type": feedback_type,
             "top_industries": top_industries,
