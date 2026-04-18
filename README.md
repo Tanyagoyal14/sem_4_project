@@ -261,6 +261,7 @@ npm run dev
 * Telecom services 📞
 * SaaS companies 💻
 * Customer support teams 📊
+* surveys files also
 
 ---
 
