@@ -1,12 +1,24 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, ReactNode } from "react";
 
-const ThemeContext = createContext<any>(null);
+// Define proper types for context
+type ThemeContextType = {
+  darkMode: boolean;
+  toggleTheme: () => void;
+};
 
-export const ThemeProvider = ({ children }: any) => {
-  const [darkMode, setDarkMode] = useState(false);
+// Create context with undefined default
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+// Props type for provider
+type ThemeProviderProps = {
+  children: ReactNode;
+};
+
+export const ThemeProvider = ({ children }: ThemeProviderProps) => {
+  const [darkMode, setDarkMode] = useState<boolean>(false);
 
   const toggleTheme = () => {
-    setDarkMode(!darkMode);
+    setDarkMode((prev) => !prev);
   };
 
   return (
@@ -16,4 +28,11 @@ export const ThemeProvider = ({ children }: any) => {
   );
 };
 
-export const useTheme = () => useContext(ThemeContext);
+// Custom hook with safety check
+export const useTheme = (): ThemeContextType => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error("useTheme must be used within a ThemeProvider");
+  }
+  return context;
+};
