@@ -223,35 +223,98 @@ frontend/
 
 ---
 
-# ⚙️ Installation
+## 🛠️ Setup Instructions
 
-## 1️⃣ Clone Repository
+Follow these steps to get **Sentilytics** up and running on your local machine.
 
-```
+---
+
+### 1. 📥 Clone the Repository
+
+```bash
 git clone https://github.com/yourusername/sentilytics.git
+cd sentilytics
 ```
 
 ---
 
-## 2️⃣ Backend Setup
+### 2. ⚙️ Backend Setup (FastAPI)
 
-```
+The backend handles data processing and logic.
+
+#### 📂 Navigate to backend
+
+```bash
 cd backend
+```
+
+#### 📦 Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
+
+#### ▶️ Run the server
+
+```bash
 uvicorn main:app --reload --port 8002
 ```
 
 ---
 
-## 3️⃣ Frontend Setup
+### 3. 🎨 Frontend Setup (React)
 
-```
+Open a new terminal (keep backend running).
+
+#### 📂 Navigate to frontend
+
+```bash
 cd frontend
-npm install
+```
+
+#### 📦 Install libraries
+
+```bash
+npm install recharts framer-motion react-countup lottie-react d3
+```
+
+#### ▶️ Start development server
+
+```bash
 npm run dev
 ```
 
 ---
+
+## 📄 Input CSV Format
+
+To use **Sentilytics**, upload a CSV file containing user feedback.
+
+---
+
+### ✅ Required Column
+
+* **`feedback` (case-insensitive)**
+  Contains user comments (complaints, suggestions, praise)
+
+✔ Accepted formats:
+
+* `feedback`
+* `Feedback`
+* `FEEDBACK`
+* `feedBack`
+
+---
+
+### ⚠️ Validation Rules
+
+* 📁 **Format:** Must be a valid CSV file
+* 📌 **Column Required:** Must include a `feedback` column
+* ✍️ **Content:** Column must not be empty
+* ❌ **Error Handling:** Missing column → validation error
+
+---
+
 
 # 🎯 Target Audience
 
