@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 
 type InsightSummary = {
-  mainComplaint: string
+  headline: string
   frequentKeywords: string[]
 }
 
@@ -11,9 +11,19 @@ type AIInsightsProps = {
 
 const STOP_WORDS = new Set([
   "a", "an", "and", "are", "as", "at", "be", "been", "but", "by", "for",
-  "from", "had", "has", "have", "i", "if", "in", "is", "it", "my", "of",
-  "on", "or", "so", "that", "the", "their", "this", "to", "was", "were",
-  "with", "you", "your"
+  "from", "had", "has", "have", "i", "if", "in", "is", "it", "its", "my",
+  "of", "on", "or", "so", "that", "the", "their", "this", "to", "was",
+  "were", "with", "you", "your"
+])
+
+const POSITIVE_WORDS = new Set([
+  "amazing", "awesome", "best", "excellent", "fast", "good", "great", "happy",
+  "love", "loved", "nice", "perfect", "smooth", "useful"
+])
+
+const NEGATIVE_WORDS = new Set([
+  "bad", "broken", "complaint", "crash", "crashed", "damaged", "delay", "delayed",
+  "issue", "late", "poor", "problem", "refund", "slow", "terrible", "worst"
 ])
 
 function analyzeFeedback(feedbackList: string[]): InsightSummary | null {
@@ -26,14 +36,21 @@ function analyzeFeedback(feedbackList: string[]): InsightSummary | null {
   }
 
   const keywordCounts: Record<string, number> = {}
+  let positiveMatches = 0
+  let negativeMatches = 0
 
   cleanedFeedback.forEach((entry) => {
     entry
       .replace(/[^a-z0-9\s]/g, " ")
       .split(/\s+/)
-      .filter((word) => word.length > 2 && !STOP_WORDS.has(word))
+      .filter(Boolean)
       .forEach((word) => {
-        keywordCounts[word] = (keywordCounts[word] || 0) + 1
+        if (POSITIVE_WORDS.has(word)) positiveMatches++
+        if (NEGATIVE_WORDS.has(word)) negativeMatches++
+
+        if (word.length > 2 && !STOP_WORDS.has(word)) {
+          keywordCounts[word] = (keywordCounts[word] || 0) + 1
+        }
       })
   })
 
@@ -42,10 +59,21 @@ function analyzeFeedback(feedbackList: string[]): InsightSummary | null {
     .slice(0, 3)
     .map(([word]) => word)
 
+  const topKeyword = frequentKeywords[0]
+  let headline = "No clear insight available yet."
+
+  if (topKeyword) {
+    if (positiveMatches > negativeMatches) {
+      headline = `Positive feedback is centered around "${topKeyword}".`
+    } else if (negativeMatches > positiveMatches) {
+      headline = `Main complaint is related to "${topKeyword}".`
+    } else {
+      headline = `Customers are frequently discussing "${topKeyword}".`
+    }
+  }
+
   return {
-    mainComplaint: frequentKeywords[0]
-      ? `Customers are frequently mentioning "${frequentKeywords[0]}".`
-      : cleanedFeedback[0],
+    headline,
     frequentKeywords
   }
 }
@@ -62,13 +90,11 @@ function AIInsights({ feedbackList }: AIInsightsProps) {
       <h2 className="mb-4 text-xl font-semibold">AI Insights</h2>
 
       {!insights ? (
-        <p className="text-slate-600 dark:text-slate-300">
-          No insights available
-        </p>
+        <p className="text-slate-600 dark:text-slate-300">No insights available</p>
       ) : (
         <>
           <p className="mb-2 text-slate-700 dark:text-slate-100">
-            Main complaint detected: <b>{insights.mainComplaint}</b>
+            Insight: <b>{insights.headline}</b>
           </p>
 
           <p className="text-slate-700 dark:text-slate-100">

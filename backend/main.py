@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from transformers import pipeline
 from datetime import datetime
 from typing import Optional, List
+import re
 
 from langdetect import detect
 from deep_translator import GoogleTranslator
@@ -74,17 +75,53 @@ FEEDBACK_TYPES = ["Complaint", "Suggestion", "Praise", "Question"]
 
 feedback_history = []
 
+HINGLISH_MARKERS = {
+    "acha", "accha", "bahut", "bohot", "bekar", "bura", "sahi", "jaldi",
+    "der", "late", "kr", "kar", "kara", "nahi", "nhi", "hai", "tha", "thi",
+    "mera", "meri", "mere", "app", "payment", "refund", "delivery", "nahi",
+    "issue", "problem", "faltu", "bakwas", "mast", "tatti", "dhanyavad",
+    "shukriya", "samasya", "madad", "kyu", "kyun", "kaise", "acha", "thik"
+}
+
 # -----------------------------
 # UTIL FUNCTIONS
 # -----------------------------
 
-def translate(text):
+def looks_like_hindi_or_hinglish(text: str) -> bool:
+    lowered = text.lower()
+
+    if re.search(r"[\u0900-\u097F]", text):
+        return True
+
+    tokens = re.findall(r"[a-zA-Z']+", lowered)
+    if not tokens:
+        return False
+
+    marker_matches = sum(1 for token in tokens if token in HINGLISH_MARKERS)
+    return marker_matches >= 2
+
+
+def translate(text: str):
+    stripped_text = text.strip()
+
+    if not stripped_text:
+        return stripped_text
+
     try:
-        if detect(text) != "en":
-            return GoogleTranslator(source="auto", target="en").translate(text)
-    except:
-        pass
-    return text
+        detected_language = detect(stripped_text)
+    except Exception:
+        detected_language = "unknown"
+
+    needs_translation = detected_language != "en" or looks_like_hindi_or_hinglish(stripped_text)
+
+    if not needs_translation:
+        return stripped_text
+
+    try:
+        translated = GoogleTranslator(source="auto", target="en").translate(stripped_text)
+        return translated or stripped_text
+    except Exception:
+        return stripped_text
 
 
 def get_sentiment(label):
@@ -142,7 +179,8 @@ def analyze_feedback(request: FeedbackRequest):
         csat = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
 
         feedback_history.append({
-            "feedback": translated[i],
+            "feedback": text,
+            "translated_feedback": translated[i],
             "sentiment": sentiment,
             "type": feedback_type,
             "timestamp": datetime.now().isoformat()
