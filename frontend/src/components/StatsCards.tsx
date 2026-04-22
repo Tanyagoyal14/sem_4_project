@@ -1,70 +1,47 @@
 import { motion } from "framer-motion"
 
-function StatsCards({ csat }: any) {
+type StatsCardsProps = {
+  total: number
+  positive: number
+  negative: number
+  csat: number
+}
 
+function StatsCards({ total, positive, negative, csat }: StatsCardsProps) {
   const stats = [
-    {
-      title: "Total Feedback",
-      value: 128,
-      icon: "📊"
-    },
-    {
-      title: "Positive",
-      value: 85,
-      icon: "😊"
-    },
-    {
-      title: "Negative",
-      value: 32,
-      icon: "😡"
-    },
-    {
-      title: "CSAT Score",
-      value: `${csat}%`,
-      icon: "⭐"
-    }
+    { title: "Total Feedback", value: total, icon: "📊" },
+    { title: "Positive", value: positive, icon: "😊" },
+    { title: "Negative", value: negative, icon: "😡" },
+    { title: "CSAT Score", value: `${csat}%`, icon: "⭐" }
   ]
 
   return (
-
-    <div className="grid md:grid-cols-4 gap-6 mt-6">
-
-      {stats.map((s, i) => (
-
+    <div className="mt-6 grid gap-6 md:grid-cols-4">
+      {stats.map((stat, index) => (
         <motion.div
-          key={i}
+          key={stat.title}
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.2 }}
+          transition={{ delay: index * 0.2 }}
           whileHover={{ scale: 1.05 }}
-          className="bg-[#12121a] border border-white/10 rounded-xl p-6 shadow-lg"
+          className="rounded-xl border border-slate-200 bg-white p-6 shadow-lg dark:border-white/10 dark:bg-[#12121a]"
         >
-
           <div className="flex items-center justify-between">
-
             <div>
-              <p className="text-gray-400 text-sm">
-                {s.title}
+              <p className="text-sm text-slate-500 dark:text-gray-400">
+                {stat.title}
               </p>
 
-              <h2 className="text-3xl font-bold mt-2">
-                {s.value}
+              <h2 className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
+                {stat.value}
               </h2>
             </div>
 
-            {/* Icon */}
-            <div className="text-3xl">
-              {s.icon}
-            </div>
-
+            <div className="text-3xl">{stat.icon}</div>
           </div>
-
         </motion.div>
-
       ))}
-
     </div>
-
   )
 }
 

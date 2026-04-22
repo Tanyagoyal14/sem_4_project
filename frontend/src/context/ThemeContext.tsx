@@ -1,38 +1,62 @@
-import { createContext, useState, useContext, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState } from "react"
+import type { ReactNode } from "react"
 
-// Define proper types for context
+type Theme = "light" | "dark"
+
 type ThemeContextType = {
-  darkMode: boolean;
-  toggleTheme: () => void;
-};
+  theme: Theme
+  darkMode: boolean
+  setTheme: (theme: Theme) => void
+  toggleTheme: () => void
+}
 
-// Create context with undefined default
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-// Props type for provider
 type ThemeProviderProps = {
-  children: ReactNode;
-};
+  children: ReactNode
+}
+
+const getInitialTheme = (): Theme => {
+  if (typeof window === "undefined") return "dark"
+  const savedTheme = localStorage.getItem("theme")
+  return savedTheme === "light" ? "light" : "dark"
+}
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
+
+  useEffect(() => {
+    localStorage.setItem("theme", theme)
+    document.documentElement.classList.toggle("dark", theme === "dark")
+    document.body.classList.toggle("dark", theme === "dark")
+  }, [theme])
 
   const toggleTheme = () => {
-    setDarkMode((prev) => !prev);
-  };
+    setTheme((currentTheme) => currentTheme === "dark" ? "light" : "dark")
+  }
 
   return (
-    <ThemeContext.Provider value={{ darkMode, toggleTheme }}>
-      <div className={darkMode ? "dark" : ""}>{children}</div>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        darkMode: theme === "dark",
+        setTheme,
+        toggleTheme
+      }}
+    >
+      <div className={theme}>
+        {children}
+      </div>
     </ThemeContext.Provider>
-  );
-};
+  )
+}
 
-// Custom hook with safety check
 export const useTheme = (): ThemeContextType => {
-  const context = useContext(ThemeContext);
+  const context = useContext(ThemeContext)
+
   if (!context) {
-    throw new Error("useTheme must be used within a ThemeProvider");
+    throw new Error("useTheme must be used within a ThemeProvider")
   }
-  return context;
-};
+
+  return context
+}

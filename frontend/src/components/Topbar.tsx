@@ -1,11 +1,11 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import logo from "../assets/logo.png"
+import { useTheme } from "../context/ThemeContext"
 
 function Topbar() {
-
   const navigate = useNavigate()
-
+  const { theme, toggleTheme } = useTheme()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
 
@@ -16,132 +16,102 @@ function Topbar() {
   ]
 
   return (
-
-    <div className="flex justify-between items-center mb-6">
-
-      {/* 🔥 LOGO + TITLE */}
-
+    <div className="mb-6 flex items-center justify-between">
       <div className="flex items-center gap-3">
-
         <img
           src={logo}
           alt="Sentilytics Logo"
-          className="w-10 h-10 object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]"
+          className="h-10 w-10 object-contain drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]"
         />
 
         <div>
-          <h1 className="text-xl font-bold text-white tracking-wide">
+          <h1 className="text-xl font-bold tracking-wide text-slate-900 dark:text-white">
             Sentilytics
           </h1>
 
-          <p className="text-green-400 text-xs">
-            ● AI Models Running
+          <p className="text-xs text-emerald-500 dark:text-green-400">
+            Live AI monitoring
           </p>
         </div>
-
       </div>
 
-
-      {/* RIGHT SIDE */}
-
-      <div className="flex items-center gap-8">
-
-        {/* 🔔 Notifications */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={toggleTheme}
+          className="rounded-full border border-slate-300 bg-white px-3 py-2 text-lg shadow-sm transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
+          aria-label="Toggle theme"
+        >
+          {theme === "dark" ? "🌙" : "☀️"}
+        </button>
 
         <div className="relative">
-
           <button
             onClick={() => setShowNotifications(!showNotifications)}
-            className="relative text-xl text-white hover:text-pink-400 transition"
+            className="relative text-xl text-slate-900 transition hover:text-pink-400 dark:text-white"
           >
-
             🔔
-
-            <span className="absolute -top-2 -right-2 bg-pink-500 text-xs px-1.5 py-0.5 rounded-full">
+            <span className="absolute -right-2 -top-2 rounded-full bg-pink-500 px-1.5 py-0.5 text-xs text-white">
               {notifications.length}
             </span>
-
           </button>
 
           {showNotifications && (
-
-            <div className="absolute right-0 mt-3 w-64 bg-black border border-white/10 rounded-xl p-4 shadow-xl z-50">
-
-              <h3 className="font-semibold mb-3 text-white">
+            <div className="absolute right-0 z-50 mt-3 w-64 rounded-xl border border-slate-200 bg-white p-4 shadow-xl dark:border-white/10 dark:bg-black">
+              <h3 className="mb-3 font-semibold text-slate-900 dark:text-white">
                 Notifications
               </h3>
 
-              {notifications.map((n, i) => (
-
+              {notifications.map((notification, index) => (
                 <p
-                  key={i}
-                  className="text-sm text-gray-300 mb-2 p-2 rounded hover:bg-white/10 transition"
+                  key={index}
+                  className="mb-2 rounded p-2 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-white/10"
                 >
-                  {n}
+                  {notification}
                 </p>
-
               ))}
-
             </div>
-
           )}
-
         </div>
 
-
-        {/* 👤 Admin Menu */}
-
         <div className="relative">
-
           <button
             onClick={() => setShowAdmin(!showAdmin)}
-            className="flex items-center gap-2 hover:text-pink-400 transition"
+            className="flex items-center gap-2 transition hover:text-pink-400"
           >
-
-            <div className="w-9 h-9 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center font-semibold shadow-md">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 font-semibold text-white shadow-md">
               A
             </div>
 
-            <span className="text-white">
+            <span className="text-slate-900 dark:text-white">
               Admin
             </span>
-
           </button>
 
           {showAdmin && (
-
-            <div className="absolute right-0 mt-3 bg-black border border-white/10 rounded-xl p-4 w-40 shadow-xl z-50">
-
+            <div className="absolute right-0 z-50 mt-3 w-40 rounded-xl border border-slate-200 bg-white p-4 shadow-xl dark:border-white/10 dark:bg-black">
               <p
-                className="cursor-pointer hover:text-pink-400 mb-2"
+                className="mb-2 cursor-pointer text-slate-700 hover:text-pink-400 dark:text-white"
                 onClick={() => navigate("/app/profile")}
               >
                 Profile
               </p>
 
               <p
-                className="cursor-pointer hover:text-pink-400 mb-2"
+                className="mb-2 cursor-pointer text-slate-700 hover:text-pink-400 dark:text-white"
                 onClick={() => navigate("/app/settings")}
               >
                 Settings
               </p>
 
-              <p className="cursor-pointer hover:text-red-400">
+              <p className="cursor-pointer text-slate-700 hover:text-red-400 dark:text-white">
                 Logout
               </p>
-
             </div>
-
           )}
-
         </div>
-
       </div>
-
     </div>
-
   )
-
 }
 
 export default Topbar

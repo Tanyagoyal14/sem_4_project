@@ -7,7 +7,7 @@ export default function useFeedbackStream(){
   const addFeedback=(text:string,sentiment:string)=>{
 
     setStream(prev => [
-      {text,sentiment},
+      { text, feedback: text, sentiment },
       ...prev
     ])
 

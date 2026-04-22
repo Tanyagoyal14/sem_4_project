@@ -1,22 +1,17 @@
-import { Moon, Sun } from "lucide-react";
-import { useState } from "react";
+import { Moon, Sun } from "lucide-react"
+import { useTheme } from "../context/ThemeContext"
 
 function ThemeToggle() {
-  const [dark, setDark] = useState(false);
-
-  const toggle = () => {
-    setDark(!dark);
-    document.documentElement.classList.toggle("dark");
-  };
+  const { darkMode, toggleTheme } = useTheme()
 
   return (
     <button
-      onClick={toggle}
-      className="p-2 rounded-lg bg-gray-200 dark:bg-gray-700"
+      onClick={toggleTheme}
+      className="rounded-lg bg-gray-200 p-2 dark:bg-gray-700"
     >
-      {dark ? <Sun size={18}/> : <Moon size={18}/>}
+      {darkMode ? <Moon size={18} /> : <Sun size={18} />}
     </button>
-  );
+  )
 }
 
-export default ThemeToggle;
+export default ThemeToggle

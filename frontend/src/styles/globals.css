@@ -1,19 +1,37 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
 
   body {
     min-height: 100vh;
+    color: #0f172a;
 
+    background:
+      radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.12), transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.14), transparent 40%),
+      linear-gradient(135deg,#f8fafc,#e2e8f0,#f8fafc);
+    background-attachment: fixed;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  html.dark body,
+  body.dark {
+    color: #e5e7eb;
     background:
       radial-gradient(circle at 20% 30%, #8b5cf6, transparent 40%),
       radial-gradient(circle at 80% 70%, #ec4899, transparent 40%),
       radial-gradient(circle at 50% 50%, #6366f1, transparent 50%),
       linear-gradient(135deg,#4f46e5,#9333ea,#ec4899);
-
     background-attachment: fixed;
   }
-
 }
 @keyframes gradientMove {
   0% { background-position: 0% 50%; }

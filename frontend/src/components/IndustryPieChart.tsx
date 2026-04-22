@@ -50,7 +50,7 @@ function IndustryPieChart({ data }: any) {
             }}
           >
 
-            {data.map((entry: any, index: number) => (
+            {data.map((_: any, index: number) => (
               <Cell
                 key={index}
                 fill={COLORS[index % COLORS.length]}
