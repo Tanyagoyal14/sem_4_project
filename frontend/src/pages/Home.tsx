@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import IndustryPieChart from "../components/IndustryPieChart";
 import SentimentBadge from "../components/SentimentBadge";
 
 function Home(){
 
+  const navigate = useNavigate()
   const [feedback,setFeedback]=useState("")
   const [result,setResult]=useState<any>(null)
   const [live,setLive]=useState<any[]>([])
@@ -87,7 +89,14 @@ function Home(){
               Industry Detection
             </h2>
 
-            <IndustryPieChart data={result.top_industries}/>
+            <IndustryPieChart
+              data={result.top_industries}
+              onSliceClick={(entry) => {
+                navigate("/app/analytics", {
+                  state: { selectedIndustry: entry.name }
+                })
+              }}
+            />
 
           </div>
 

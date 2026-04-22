@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
+import { useNavigate } from "react-router-dom"
 
 import Topbar from "../components/Topbar"
 import StatsCards from "../components/StatsCards"
@@ -9,6 +10,7 @@ import AIInsights from "../components/AIInsights"
 import useFeedbackStream from "../hooks/useFeedbackStream"
 
 function Dashboard() {
+  const navigate = useNavigate()
   const { stream, addFeedback } = useFeedbackStream()
 
   const [feedback, setFeedback] = useState("")
@@ -232,7 +234,14 @@ Payment failed`}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
         >
-          <IndustryPieChart data={industryData} />
+          <IndustryPieChart
+            data={industryData}
+            onSliceClick={(entry) => {
+              navigate("/app/analytics", {
+                state: { selectedIndustry: entry.name }
+              })
+            }}
+          />
         </motion.div>
 
         <motion.div

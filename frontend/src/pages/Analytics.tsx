@@ -1,14 +1,7 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { useLocation } from "react-router-dom"
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer
-} from "recharts"
+import IndustryPieChart from "../components/IndustryPieChart"
 
 function Analytics() {
   const location = useLocation()
@@ -16,7 +9,12 @@ function Analytics() {
 
   const [history, setHistory] = useState<any[]>([])
   const [csat, setCsat] = useState(0)
-  const colors = ["#22c55e", "#eab308", "#ef4444", "#3b82f6"]
+  const totalFeedback = history.length
+  const positiveFeedback = history.filter((item: any) => item.sentiment === "Positive").length
+  const negativeFeedback = history.filter((item: any) => item.sentiment === "Negative").length
+  const neutralFeedback = history.filter((item: any) => item.sentiment === "Neutral").length
+  const positiveShare = totalFeedback > 0 ? Math.round((positiveFeedback / totalFeedback) * 100) : 0
+  const negativeShare = totalFeedback > 0 ? Math.round((negativeFeedback / totalFeedback) * 100) : 0
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,12 +72,21 @@ function Analytics() {
 
   const sentimentData = Object.keys(sentimentCounts).map((key) => ({
     name: key,
-    value: sentimentCounts[key]
+    value: sentimentCounts[key],
+    icon: key === "Positive" ? "😊" : key === "Neutral" ? "😐" : "😞"
   }))
 
   const complaintData = Object.keys(complaintCounts).map((key) => ({
     name: key,
-    value: complaintCounts[key]
+    value: complaintCounts[key],
+    icon:
+      key === "Complaint"
+        ? "⚠️"
+        : key === "Suggestion"
+          ? "💡"
+          : key === "Praise"
+            ? "👏"
+            : "❓"
   }))
 
   return (
@@ -98,21 +105,81 @@ function Analytics() {
         </div>
       )}
 
-      <div className="mb-8 grid grid-cols-3 gap-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-black/40">
-          <h2 className="text-slate-500 dark:text-gray-400">Total Feedback</h2>
-          <p className="text-3xl font-bold">{history.length}</p>
-        </div>
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {[
+          {
+            title: "Total Feedback",
+            value: totalFeedback,
+            change: totalFeedback > 0 ? "+0.0%" : "0.0%",
+            icon: "📈",
+            accent: "from-emerald-400/30 via-cyan-400/15 to-transparent",
+            subtitle: "Based on recent feedback",
+            footer: "Latest volume"
+          },
+          {
+            title: "Positive",
+            value: positiveFeedback,
+            change: `+${positiveShare}%`,
+            icon: "😊",
+            accent: "from-emerald-400/35 via-emerald-300/10 to-transparent",
+            subtitle: `${positiveShare}% of total`,
+            footer: "Good sentiment share"
+          },
+          {
+            title: "Negative",
+            value: negativeFeedback,
+            change: negativeShare > 0 ? `-${negativeShare}%` : "0.0%",
+            icon: "😡",
+            accent: "from-rose-500/30 via-red-400/10 to-transparent",
+            subtitle: `${negativeShare}% of total`,
+            footer: "Needs attention"
+          },
+          {
+            title: "CSAT Score",
+            value: csat,
+            change: `${csat >= 50 ? "+" : "-"}${Math.abs(csat - 50)}%`,
+            icon: "⭐",
+            accent: "from-sky-400/25 via-cyan-400/10 to-transparent",
+            subtitle: "Customer satisfaction",
+            footer: `${neutralFeedback} neutral items`
+          }
+        ].map((card) => (
+          <div
+            key={card.title}
+            className="group relative overflow-hidden rounded-[20px] border border-white/10 bg-[#0b1720]/70 p-5 text-white shadow-[0_20px_60px_rgba(0,0,0,0.42)] backdrop-blur-2xl transition hover:-translate-y-1 hover:shadow-[0_26px_70px_rgba(0,0,0,0.5)]"
+          >
+            <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${card.accent} opacity-55`} />
+            <div className="pointer-events-none absolute inset-[1px] rounded-[19px] border border-white/10 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" />
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-black/40">
-          <h2 className="text-slate-500 dark:text-gray-400">CSAT Score</h2>
-          <p className="text-3xl font-bold text-green-400">{csat}%</p>
-        </div>
+            <div className="relative z-10 flex min-h-[146px] flex-col justify-between">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-semibold tracking-[0.22em] text-white/55">
+                    {card.title.toUpperCase()}
+                  </p>
+                  <p className="mt-2 text-3xl font-extrabold text-white">{card.value}</p>
+                  <p className="mt-2 text-sm text-slate-300/75">{card.subtitle}</p>
+                </div>
+                <div className="text-3xl opacity-85">{card.icon}</div>
+              </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-black/40">
-          <h2 className="text-slate-500 dark:text-gray-400">Positive Feedback</h2>
-          <p className="text-3xl font-bold text-green-400">{sentimentCounts.Positive}</p>
-        </div>
+              <div className="mt-4 flex items-center justify-between">
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    card.title === "Negative"
+                      ? "bg-rose-500/10 text-rose-300"
+                      : "bg-emerald-500/10 text-emerald-300"
+                  }`}
+                >
+                  {card.change}
+                </span>
+                <p className="text-xs uppercase tracking-[0.16em] text-white/45">
+                  {card.footer}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="grid gap-8 lg:grid-cols-2">
@@ -120,56 +187,28 @@ function Analytics() {
           initial={{ opacity: 0, scale: 0.85 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-black/40"
         >
-          <h2 className="mb-4 text-xl">Sentiment Distribution</h2>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={sentimentData}
-                dataKey="value"
-                nameKey="name"
-                outerRadius={100}
-                label
-              >
-                {sentimentData.map((_, index) => (
-                  <Cell key={index} fill={colors[index % colors.length]} />
-                ))}
-              </Pie>
-
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <IndustryPieChart
+            data={sentimentData}
+            height={320}
+            title="SENTIMENT DISTRIBUTION"
+            subtitle="Live breakdown of feedback polarity"
+            className="h-full"
+          />
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
-          className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-black/40"
         >
-          <h2 className="mb-4 text-xl">Feedback Type Distribution</h2>
-
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={complaintData}
-                dataKey="value"
-                nameKey="name"
-                outerRadius={100}
-                label
-              >
-                {complaintData.map((_, index) => (
-                  <Cell key={index} fill={colors[index % colors.length]} />
-                ))}
-              </Pie>
-
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
+          <IndustryPieChart
+            data={complaintData}
+            height={320}
+            title="FEEDBACK TYPE DISTRIBUTION"
+            subtitle="Complaint, suggestion, praise, and question mix"
+            className="h-full"
+          />
         </motion.div>
       </div>
 

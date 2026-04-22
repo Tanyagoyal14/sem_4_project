@@ -37,25 +37,28 @@ function Reports() {
     >
       <h1 className="mb-8 text-3xl font-bold">Available Reports</h1>
 
-      <div className="space-y-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[#12121a]">
+      <div className="space-y-6 rounded-[20px] border border-white/10 bg-[#0b1720]/70 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
         {reports.map((report, index) => (
           <motion.div
             key={report.title}
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.2 }}
-            className="flex items-center justify-between border-b border-slate-200 pb-4 last:border-none dark:border-white/10"
+            className="flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-4 transition hover:bg-white/8"
           >
             <div>
-              <h3 className="text-lg font-semibold">{report.title}</h3>
-              <p className="mt-1 text-sm text-slate-500 dark:text-gray-400">{report.desc}</p>
+              <p className="text-[11px] font-semibold tracking-[0.22em] text-white/55">
+                REPORT
+              </p>
+              <h3 className="mt-1 text-lg font-semibold text-white">{report.title}</h3>
+              <p className="mt-1 text-sm text-slate-300/75">{report.desc}</p>
             </div>
 
             <motion.button
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => downloadReport(report.format)}
-              className="rounded-xl bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-2 text-white shadow-lg transition hover:shadow-purple-500/50"
+              className="rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-sky-500 px-5 py-2 text-white shadow-[0_10px_25px_rgba(34,197,94,0.28)] transition hover:shadow-[0_14px_30px_rgba(34,197,94,0.36)]"
             >
               Download {report.format.toUpperCase()}
             </motion.button>

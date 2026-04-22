@@ -86,22 +86,38 @@ function AIInsights({ feedbackList }: AIInsightsProps) {
   }, [feedbackList])
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white/90 p-6 text-slate-900 shadow-sm backdrop-blur-xl dark:border-white/10 dark:bg-white/10 dark:text-white">
-      <h2 className="mb-4 text-xl font-semibold">AI Insights</h2>
+    <div className="relative overflow-hidden rounded-[20px] border border-white/10 bg-[#0b1720]/70 p-6 text-white shadow-[0_20px_60px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(79,209,197,0.14),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(59,130,246,0.12),transparent_30%)]" />
+      <div className="pointer-events-none absolute inset-[1px] rounded-[19px] border border-white/10 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" />
 
-      {!insights ? (
-        <p className="text-slate-600 dark:text-slate-300">No insights available</p>
-      ) : (
-        <>
-          <p className="mb-2 text-slate-700 dark:text-slate-100">
-            Insight: <b>{insights.headline}</b>
-          </p>
+      <div className="relative z-10">
+        <p className="text-[11px] font-semibold tracking-[0.22em] text-white/55">
+          AI INSIGHTS
+        </p>
+        <h2 className="mt-2 text-xl font-semibold text-white">Pattern Summary</h2>
 
-          <p className="text-slate-700 dark:text-slate-100">
-            Frequent keywords: {insights.frequentKeywords.join(", ") || "None"}
-          </p>
-        </>
-      )}
+        {!insights ? (
+          <p className="mt-4 text-slate-300/75">No insights available</p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-slate-100">
+              <span className="block text-xs uppercase tracking-[0.18em] text-white/45">
+                Insight
+              </span>
+              <span className="mt-1 block font-medium">{insights.headline}</span>
+            </p>
+
+            <p className="rounded-2xl border border-white/10 bg-white/5 p-4 text-slate-100">
+              <span className="block text-xs uppercase tracking-[0.18em] text-white/45">
+                Frequent Keywords
+              </span>
+              <span className="mt-1 block">
+                {insights.frequentKeywords.join(", ") || "None"}
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

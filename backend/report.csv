@@ -1,3 +1,5 @@
-feedback,sentiment,type,timestamp
-delivery late,Negative,Complaint,2026-04-12T19:37:58.096456
-plastic tuta hua tha,Neutral,Suggestion,2026-04-12T19:38:12.611490
+feedback,translated_feedback,sentiment,type,timestamp
+i hate this product,i hate this product,Negative,Complaint,2026-04-22T20:37:44.913415
+hate product,hate product,Negative,Complaint,2026-04-22T20:54:23.041275
+i hate this product,i hate this product,Negative,Complaint,2026-04-22T21:14:42.990549
+delivery was late,delivery was late,Negative,Complaint,2026-04-22T21:22:14.177674
