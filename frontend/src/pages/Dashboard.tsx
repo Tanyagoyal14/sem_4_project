@@ -11,14 +11,48 @@ import useFeedbackStream from "../hooks/useFeedbackStream"
 import { apiFetch } from "../utils/api"
 import { getAuthCredits, getAuthRole, updateStoredCredits } from "../utils/auth"
 
+const DASHBOARD_STORAGE_KEY = "dashboard_page_state"
+
+const getStoredDashboardState = () => {
+  try {
+    const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY)
+    if (!saved) {
+      return {
+        feedback: "",
+        industryData: [],
+        csat: 0,
+        results: [],
+      }
+    }
+
+    const parsed = JSON.parse(saved)
+
+    return {
+      feedback: typeof parsed.feedback === "string" ? parsed.feedback : "",
+      industryData: Array.isArray(parsed.industryData) ? parsed.industryData : [],
+      csat: typeof parsed.csat === "number" ? parsed.csat : 0,
+      results: Array.isArray(parsed.results) ? parsed.results : [],
+    }
+  } catch (error) {
+    console.error("Unable to read saved dashboard state:", error)
+    return {
+      feedback: "",
+      industryData: [],
+      csat: 0,
+      results: [],
+    }
+  }
+}
+
 function Dashboard() {
   const navigate = useNavigate()
   const { stream, addFeedback } = useFeedbackStream()
+  const storedState = getStoredDashboardState()
 
-  const [feedback, setFeedback] = useState("")
-  const [industryData, setIndustryData] = useState<any[]>([])
-  const [csat, setCsat] = useState(0)
-  const [results, setResults] = useState<any[]>([])
+  const [feedback, setFeedback] = useState(storedState.feedback)
+  const [industryData, setIndustryData] = useState<any[]>(storedState.industryData)
+  const [csat, setCsat] = useState(storedState.csat)
+  const [results, setResults] = useState<any[]>(storedState.results)
   const [loading, setLoading] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState("")
 
@@ -27,6 +61,18 @@ function Dashboard() {
       setUpgradeMessage("You've used all 200 free credits. Upgrade to continue using the dashboard.")
     }
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem(
+      DASHBOARD_STORAGE_KEY,
+      JSON.stringify({
+        feedback,
+        industryData,
+        csat,
+        results,
+      })
+    )
+  }, [feedback, industryData, csat, results])
 
   const feedbackList = useMemo(
     () => stream.map((item) => item.feedback || item.text).filter(Boolean),
@@ -58,7 +104,7 @@ function Dashboard() {
     try {
       const feedbackLines = feedback
         .split("\n")
-        .map((item) => item.trim())
+        .map((item: string) => item.trim())
         .filter(Boolean)
 
       const bodyData = feedbackLines.length === 1
