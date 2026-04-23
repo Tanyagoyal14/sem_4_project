@@ -1,18 +1,6 @@
-from pymongo import MongoClient
+"""Legacy compatibility wrapper.
 
-# -------------------------
-# CONNECT TO LOCAL MONGODB
-# -------------------------
+The real MongoDB setup now lives in `db.py`.
+"""
 
-client = MongoClient("mongodb://localhost:27017/")
-
-db = client["feedback_db"]
-
-# -------------------------
-# COLLECTIONS
-# -------------------------
-
-feedback_collection = db["feedback"]
-profile_collection = db["profiles"]
-
-print("✅ MongoDB Connected")
+from db import db, feedback_collection, profile_collection, profiles_collection, users_collection  # noqa: F401

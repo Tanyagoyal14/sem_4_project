@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import IndustryPieChart from "../components/IndustryPieChart";
 import SentimentBadge from "../components/SentimentBadge";
+import { apiFetch } from "../utils/api";
+import { updateStoredCredits } from "../utils/auth";
 
 function Home(){
 
@@ -14,15 +16,18 @@ function Home(){
 
     if(!feedback) return
 
-    const res=await fetch("http://localhost:8002/analyze-feedback",{
+    const res=await apiFetch("/analyze-feedback",{
 
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
       body:JSON.stringify({feedback})
 
     })
 
     const data=await res.json()
+
+    if (typeof data.credits_remaining === "number") {
+      updateStoredCredits(data.credits_remaining)
+    }
 
     setResult(data)
 

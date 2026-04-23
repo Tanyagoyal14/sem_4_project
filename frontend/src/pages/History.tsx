@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
+import { apiFetch } from "../utils/api"
 
 function History() {
   const [history, setHistory] = useState<any[]>([])
@@ -7,7 +8,7 @@ function History() {
 
   const fetchHistory = async () => {
     try {
-      const res = await fetch("http://localhost:8002/feedback-history")
+      const res = await apiFetch("/feedback-history")
       const data = await res.json()
       setHistory(data.history || [])
     } catch (error) {

@@ -1,13 +1,28 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import logo from "../assets/logo.png"
 import { useTheme } from "../context/ThemeContext"
+import { clearAuth, getAuthRole, getStoredUser } from "../utils/auth"
 
 function Topbar() {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
+  const [authUser, setAuthUser] = useState(getStoredUser())
+  const role = getAuthRole()
+
+  useEffect(() => {
+    const syncUser = () => setAuthUser(getStoredUser())
+
+    window.addEventListener("auth-change", syncUser)
+    window.addEventListener("storage", syncUser)
+
+    return () => {
+      window.removeEventListener("auth-change", syncUser)
+      window.removeEventListener("storage", syncUser)
+    }
+  }, [])
 
   const notifications = [
     "New negative feedback detected",
@@ -36,6 +51,18 @@ function Topbar() {
       </div>
 
       <div className="flex items-center gap-4">
+        {typeof authUser?.credits === "number" && (
+          <div
+            className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+              authUser.credits > 0
+                ? "border-emerald-400/20 bg-emerald-500/10 text-emerald-300"
+                : "border-amber-400/20 bg-amber-500/10 text-amber-300"
+            }`}
+          >
+            {role === "premium" ? "Unlimited credits" : `${authUser.credits} credits left`}
+          </div>
+        )}
+
         <button
           onClick={toggleTheme}
           className="rounded-full border border-slate-300 bg-white px-3 py-2 text-lg shadow-sm transition hover:bg-slate-100 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/20"
@@ -79,11 +106,11 @@ function Topbar() {
             className="flex items-center gap-2 transition hover:text-pink-400"
           >
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-pink-500 to-purple-500 font-semibold text-white shadow-md">
-              A
+              {authUser?.email?.[0]?.toUpperCase() || "A"}
             </div>
 
             <span className="text-slate-900 dark:text-white">
-              Admin
+              {role === "premium" ? "Premium" : "Free"}
             </span>
           </button>
 
@@ -103,7 +130,13 @@ function Topbar() {
                 Settings
               </p>
 
-              <p className="cursor-pointer text-slate-700 hover:text-red-400 dark:text-white">
+              <p
+                className="cursor-pointer text-slate-700 hover:text-red-400 dark:text-white"
+                onClick={() => {
+              clearAuth()
+                  navigate("/login")
+                }}
+              >
                 Logout
               </p>
             </div>

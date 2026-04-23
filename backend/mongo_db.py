@@ -1,8 +1,3 @@
-from pymongo import MongoClient
+"""Legacy compatibility wrapper for older imports."""
 
-MONGO_URI = "mongodb+srv://ayushib905:root@cluster0.qnlntm5.mongodb.net/feedbackDB?retryWrites=true&w=majority"
-
-client = MongoClient(MONGO_URI)
-
-db = client["feedbackDB"]
-collection = db["feedbacks"]
+from db import db, feedback_collection as collection  # noqa: F401

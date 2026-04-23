@@ -1,0 +1,68 @@
+from datetime import datetime
+from typing import Any, Dict, List, Literal, Optional
+
+from pydantic import BaseModel, EmailStr, Field
+
+
+class SignupRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+    role: Literal["free", "premium"] = "free"
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=128)
+
+
+class UserPublic(BaseModel):
+    id: str
+    email: EmailStr
+    role: Literal["free", "premium"]
+    credits: int = 200
+    created_at: datetime
+
+
+class AuthResponse(BaseModel):
+    message: str
+    user: UserPublic
+    access_token: Optional[str] = None
+    token_type: Optional[str] = "bearer"
+
+
+class ProfileModel(BaseModel):
+    name: str
+    email: EmailStr
+    company: str
+    role: str
+    avatar: str
+
+
+class FeedbackInput(BaseModel):
+    user_id: Optional[str] = None
+    feedback: str = Field(min_length=1, max_length=5000)
+
+
+class FeedbackBatchInput(BaseModel):
+    user_id: Optional[str] = None
+    feedback: Optional[str] = None
+    feedbacks: Optional[List[str]] = None
+
+
+class FeedbackAnalysisItem(BaseModel):
+    id: str
+    user_id: Optional[str] = None
+    feedback: str
+    translated_feedback: Optional[str] = None
+    sentiment: str
+    feedback_type: str
+    top_industries: List[Dict[str, Any]]
+    csat_score: int
+    created_at: datetime
+    credits_remaining: Optional[int] = None
+
+
+class FeedbackAnalysisResponse(BaseModel):
+    results: List[FeedbackAnalysisItem]
+    total: int
+    credits_remaining: Optional[int] = None

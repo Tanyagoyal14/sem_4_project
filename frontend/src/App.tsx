@@ -1,9 +1,11 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { useEffect } from "react"
 
 import Layout from "./components/Layout"
+import RequireAuth from "./components/RequireAuth"
 
 import Landing from "./pages/Landing"
+import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
 import Analytics from "./pages/Analytics"
 import History from "./pages/History"
@@ -38,14 +40,18 @@ function App(){
       <Routes>
 
         <Route path="/" element={<Landing/>}/>
+        <Route path="/login" element={<Login/>}/>
 
-        <Route path="/app" element={<Layout/>}>
-          <Route path="dashboard" element={<Dashboard/>}/>
-          <Route path="analytics" element={<Analytics/>}/> {/* FIXED */}
-          <Route path="history" element={<History/>}/>
-          <Route path="reports" element={<Reports/>}/>
-          <Route path="settings" element={<Settings/>}/>
-          <Route path="profile" element={<Profile/>}/>
+        <Route element={<RequireAuth/>}>
+          <Route path="/app" element={<Layout/>}>
+            <Route index element={<Navigate to="dashboard" replace />} />
+            <Route path="dashboard" element={<Dashboard/>}/>
+            <Route path="analytics" element={<Analytics/>}/> {/* FIXED */}
+            <Route path="history" element={<History/>}/>
+            <Route path="reports" element={<Reports/>}/>
+            <Route path="settings" element={<Settings/>}/>
+            <Route path="profile" element={<Profile/>}/>
+          </Route>
         </Route>
 
       </Routes>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { useLocation } from "react-router-dom"
 import IndustryPieChart from "../components/IndustryPieChart"
+import { apiFetch } from "../utils/api"
 
 function Analytics() {
   const location = useLocation()
@@ -19,7 +20,7 @@ function Analytics() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch("http://localhost:8002/feedback-history")
+        const res = await apiFetch("/feedback-history")
         const data = await res.json()
 
         if (!data || !data.history) {
@@ -30,7 +31,12 @@ function Analytics() {
         let filtered = data.history
 
         if (selectedIndustry) {
-          filtered = filtered.filter((item: any) => item.industry === selectedIndustry)
+          filtered = filtered.filter((item: any) =>
+            item.industry === selectedIndustry ||
+            item.feedback_type === selectedIndustry ||
+            Array.isArray(item.top_industries) &&
+              item.top_industries.some((entry: any) => entry.industry === selectedIndustry)
+          )
         }
 
         setHistory(filtered)
@@ -65,8 +71,10 @@ function Analytics() {
       sentimentCounts[item.sentiment]++
     }
 
-    if (complaintCounts[item.type] !== undefined) {
-      complaintCounts[item.type]++
+    const feedbackType = item.feedback_type || item.type
+
+    if (complaintCounts[feedbackType] !== undefined) {
+      complaintCounts[feedbackType]++
     }
   })
 

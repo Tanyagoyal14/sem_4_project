@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { motion } from "framer-motion"
 import { useNavigate } from "react-router-dom"
 
@@ -8,6 +8,8 @@ import IndustryPieChart from "../components/IndustryPieChart"
 import LiveFeed from "../components/LiveFeed"
 import AIInsights from "../components/AIInsights"
 import useFeedbackStream from "../hooks/useFeedbackStream"
+import { apiFetch } from "../utils/api"
+import { getAuthCredits, getAuthRole, updateStoredCredits } from "../utils/auth"
 
 function Dashboard() {
   const navigate = useNavigate()
@@ -18,6 +20,13 @@ function Dashboard() {
   const [csat, setCsat] = useState(0)
   const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
+  const [upgradeMessage, setUpgradeMessage] = useState("")
+
+  useEffect(() => {
+    if (getAuthRole() === "free" && getAuthCredits() === 0) {
+      setUpgradeMessage("You've used all 200 free credits. Upgrade to continue using the dashboard.")
+    }
+  }, [])
 
   const feedbackList = useMemo(
     () => stream.map((item) => item.feedback || item.text).filter(Boolean),
@@ -56,19 +65,30 @@ function Dashboard() {
         ? { feedback: feedbackLines[0] }
         : { feedbacks: feedbackLines }
 
-      const res = await fetch("http://localhost:8002/analyze-feedback", {
+      const res = await apiFetch("/analyze-feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(bodyData)
       })
 
       if (!res.ok) {
+        if (res.status === 402) {
+          setUpgradeMessage("You've used all 200 free credits. Upgrade to continue using the dashboard.")
+        }
         console.error("Backend error:", await res.text())
         return
       }
 
       const data = await res.json()
       const resultList = data.results || []
+
+      if (typeof data.credits_remaining === "number") {
+        updateStoredCredits(data.credits_remaining)
+        if (data.credits_remaining <= 0) {
+          setUpgradeMessage("You've used all 200 free credits. Upgrade to continue using the dashboard.")
+        } else {
+          setUpgradeMessage("")
+        }
+      }
 
       setResults(resultList)
 
@@ -99,18 +119,30 @@ function Dashboard() {
     formData.append("file", file)
 
     try {
-      const res = await fetch("http://localhost:8002/upload-csv", {
+      const res = await apiFetch("/upload-csv", {
         method: "POST",
         body: formData
       })
 
       if (!res.ok) {
+        if (res.status === 402) {
+          setUpgradeMessage("You've used all 200 free credits. Upgrade to continue using the dashboard.")
+        }
         console.error("CSV upload failed:", await res.text())
         return
       }
 
       const data = await res.json()
       const resultList = data.results || []
+
+      if (typeof data.credits_remaining === "number") {
+        updateStoredCredits(data.credits_remaining)
+        if (data.credits_remaining <= 0) {
+          setUpgradeMessage("You've used all 200 free credits. Upgrade to continue using the dashboard.")
+        } else {
+          setUpgradeMessage("")
+        }
+      }
 
       setResults(resultList)
 
@@ -132,6 +164,20 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-100 p-8 text-slate-900 transition-colors dark:bg-[#0b0b0f] dark:text-gray-200">
       <Topbar />
+
+      {upgradeMessage && (
+        <div className="mb-6 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <div className="flex items-center justify-between gap-4">
+            <span>{upgradeMessage}</span>
+            <button
+              onClick={() => alert("Upgrade flow coming soon")}
+              className="rounded-full bg-amber-400 px-3 py-1 text-xs font-semibold text-slate-900 transition hover:bg-amber-300"
+            >
+              Upgrade to continue using the dashboard
+            </button>
+          </div>
+        </div>
+      )}
 
       <motion.div
         initial={{ opacity: 0, y: 60 }}
@@ -177,9 +223,15 @@ Payment failed`}
         </button>
 
         <div className="mt-6">
-          <label className="mb-2 block text-sm text-slate-500 dark:text-gray-400">
-            Upload CSV File
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-4">
+            <label className="block text-sm text-slate-500 dark:text-gray-400">
+              Upload CSV File
+            </label>
+
+            <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-300">
+              Uses credits
+            </span>
+          </div>
 
           <input
             type="file"
@@ -192,7 +244,7 @@ Payment failed`}
           />
 
           <p className="mt-2 text-xs text-slate-500 dark:text-gray-500">
-            CSV must contain a column named <b>feedback</b>
+            CSV must contain a column named <b>feedback</b>. Each row uses 1 credit.
           </p>
         </div>
       </motion.div>

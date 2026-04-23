@@ -143,7 +143,7 @@ function Landing(){
             transition={{ delay: 1.4 }}
           >
             <Link
-              to="/app/dashboard"
+              to="/login"
               className="relative inline-block px-10 py-4 text-lg font-semibold rounded-xl 
                          bg-gradient-to-r from-pink-500 to-purple-600 
                          shadow-lg shadow-purple-500/30

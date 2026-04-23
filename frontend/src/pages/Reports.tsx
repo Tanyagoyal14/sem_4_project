@@ -1,6 +1,9 @@
 import { motion } from "framer-motion"
+import { isPremiumUser } from "../utils/auth"
+import { apiFetch } from "../utils/api"
 
 function Reports() {
+  const premiumUser = isPremiumUser()
   const reports = [
     {
       title: "Weekly Sentiment Report",
@@ -20,13 +23,27 @@ function Reports() {
   ]
 
   const downloadReport = (format: string) => {
-    const url = `http://localhost:8002/download-weekly-report?format=${format}`
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `report.${format}`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    if (!premiumUser) return
+
+    apiFetch(`/download-weekly-report?format=${format}`)
+      .then(async (res) => {
+        if (!res.ok) {
+          throw new Error(await res.text())
+        }
+
+        const blob = await res.blob()
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `report.${format}`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(url)
+      })
+      .catch((error) => {
+        console.error("Report download failed:", error)
+      })
   }
 
   return (
@@ -58,9 +75,10 @@ function Reports() {
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => downloadReport(report.format)}
-              className="rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-sky-500 px-5 py-2 text-white shadow-[0_10px_25px_rgba(34,197,94,0.28)] transition hover:shadow-[0_14px_30px_rgba(34,197,94,0.36)]"
+              disabled={!premiumUser}
+              className="rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-sky-500 px-5 py-2 text-white shadow-[0_10px_25px_rgba(34,197,94,0.28)] transition hover:shadow-[0_14px_30px_rgba(34,197,94,0.36)] disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Download {report.format.toUpperCase()}
+              {premiumUser ? `Download ${report.format.toUpperCase()}` : "Premium Locked"}
             </motion.button>
           </motion.div>
         ))}
