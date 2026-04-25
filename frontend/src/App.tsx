@@ -7,6 +7,7 @@ import RequireAuth from "./components/RequireAuth"
 import Landing from "./pages/Landing"
 import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
+import VideoComparison from "./pages/VideoComparison"
 import Analytics from "./pages/Analytics"
 import History from "./pages/History"
 import Reports from "./pages/Reports"
@@ -46,6 +47,7 @@ function App(){
           <Route path="/app" element={<Layout/>}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard/>}/>
+            <Route path="compare" element={<VideoComparison/>}/>
             <Route path="analytics" element={<Analytics/>}/> {/* FIXED */}
             <Route path="history" element={<History/>}/>
             <Route path="reports" element={<Reports/>}/>

@@ -8,6 +8,7 @@ from db import ensure_indexes, ping_database
 from routes.auth import router as auth_router
 from routes.feedback import router as feedback_router
 from routes.profile import router as profile_router
+from routes.youtube_compare import router as youtube_compare_router
 
 app = FastAPI(title="AI Feedback Intelligence System", version="9.0")
 
@@ -41,6 +42,7 @@ def startup_event() -> None:
 app.include_router(auth_router)
 app.include_router(feedback_router)
 app.include_router(profile_router)
+app.include_router(youtube_compare_router)
 
 
 @app.get("/")

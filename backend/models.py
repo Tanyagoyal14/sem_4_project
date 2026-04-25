@@ -66,3 +66,46 @@ class FeedbackAnalysisResponse(BaseModel):
     results: List[FeedbackAnalysisItem]
     total: int
     credits_remaining: Optional[int] = None
+
+
+class YouTubeCompareRequest(BaseModel):
+    video1_url: str = Field(min_length=5, max_length=2000)
+    video2_url: str = Field(min_length=5, max_length=2000)
+    max_comments: int = Field(default=300, ge=200, le=500)
+
+
+class VideoSentimentStats(BaseModel):
+    title: str
+    video_id: str
+    url: str
+    total_comments: int
+    positive_count: int
+    negative_count: int
+    neutral_count: int
+    positive_percentage: float
+    negative_percentage: float
+    neutral_percentage: float
+    average_sentiment_score: float
+    csat_score: int
+    most_liked_comment: str
+    most_liked_comment_likes: int
+
+
+class VideoComparePayload(BaseModel):
+    stats: VideoSentimentStats
+    keywords: List[str]
+    summary: str
+
+
+class CompareInsight(BaseModel):
+    winner: str
+    positivity_difference: float
+    key_insights: List[str]
+
+
+class YouTubeCompareResponse(BaseModel):
+    video1: VideoComparePayload
+    video2: VideoComparePayload
+    comparison: CompareInsight
+    cached: bool = False
+    history_saved: bool = False

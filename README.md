@@ -254,6 +254,14 @@ cd backend
 pip install -r requirements.txt
 ```
 
+#### 🔐 Configure environment variables
+
+Copy [backend/.env.example](/Users/hp/Desktop/sempro/sem_4_project/backend/.env.example) to `backend/.env` and fill in:
+
+* `MONGO_URI`
+* `JWT_SECRET_KEY`
+* `YOUTUBE_API_KEY`
+
 #### ▶️ Run the server
 
 ```bash

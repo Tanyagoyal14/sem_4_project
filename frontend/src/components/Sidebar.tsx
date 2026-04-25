@@ -9,6 +9,7 @@ type SidebarProps = {
 function Sidebar({ collapsed, setCollapsed }: SidebarProps) {
   const menu = [
     { name: "Dashboard", path: "/app/dashboard", icon: "📊" },
+    { name: "Compare Videos", path: "/app/compare", icon: "🎬" },
     { name: "Analytics", path: "/app/analytics", icon: "📈" },
     { name: "History", path: "/app/history", icon: "🕘" },
     { name: "Reports", path: "/app/reports", icon: "📄" },

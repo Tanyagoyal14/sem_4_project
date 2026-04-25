@@ -13,6 +13,16 @@ import { getAuthCredits, getAuthRole, updateStoredCredits } from "../utils/auth"
 
 const DASHBOARD_STORAGE_KEY = "dashboard_page_state"
 
+type CompareHistoryItem = {
+  created_at: string
+  response: {
+    video1: { stats: { title: string; url: string } }
+    video2: { stats: { title: string; url: string } }
+    comparison: { winner: string; positivity_difference: number }
+  }
+  video_urls: string[]
+}
+
 const getStoredDashboardState = () => {
   try {
     const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY)
@@ -55,6 +65,8 @@ function Dashboard() {
   const [results, setResults] = useState<any[]>(storedState.results)
   const [loading, setLoading] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState("")
+  const [compareHistory, setCompareHistory] = useState<CompareHistoryItem[]>([])
+  const [compareHistoryLoading, setCompareHistoryLoading] = useState(false)
 
   useEffect(() => {
     if (getAuthRole() === "free" && getAuthCredits() === 0) {
@@ -73,6 +85,29 @@ function Dashboard() {
       })
     )
   }, [feedback, industryData, csat, results])
+
+  useEffect(() => {
+    const loadCompareHistory = async () => {
+      setCompareHistoryLoading(true)
+      try {
+        const res = await apiFetch("/youtube/compare-history")
+        if (!res.ok) {
+          setCompareHistory([])
+          return
+        }
+
+        const data = await res.json()
+        setCompareHistory(Array.isArray(data.history) ? data.history : [])
+      } catch (error) {
+        console.error("Unable to load compare history:", error)
+        setCompareHistory([])
+      } finally {
+        setCompareHistoryLoading(false)
+      }
+    }
+
+    loadCompareHistory()
+  }, [])
 
   const feedbackList = useMemo(
     () => stream.map((item) => item.feedback || item.text).filter(Boolean),
@@ -226,6 +261,34 @@ function Dashboard() {
       )}
 
       <motion.div
+        initial={{ opacity: 0, y: 22 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.45 }}
+        className="mb-6 overflow-hidden rounded-[24px] border border-cyan-400/15 bg-[linear-gradient(135deg,rgba(8,15,29,0.95),rgba(15,23,42,0.88))] p-5 text-white shadow-[0_24px_80px_rgba(2,6,23,0.32)]"
+      >
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-semibold tracking-[0.28em] text-cyan-300/75">
+              VIDEO COMPARISON STUDIO
+            </p>
+            <h2 className="mt-2 text-2xl font-bold">
+              Compare two YouTube videos with audience sentiment and keyword insights.
+            </h2>
+            <p className="mt-2 text-sm text-slate-300">
+              Spot which video resonates more, what viewers praise, and where the criticism clusters.
+            </p>
+          </div>
+
+          <button
+            onClick={() => navigate("/app/compare")}
+            className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+          >
+            Compare Videos
+          </button>
+        </div>
+      </motion.div>
+
+      <motion.div
         initial={{ opacity: 0, y: 60 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
@@ -376,6 +439,71 @@ Payment failed`}
         className="mt-8"
       >
         <AIInsights feedbackList={feedbackList} />
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55 }}
+        className="mt-8 rounded-[24px] border border-white/10 bg-[linear-gradient(135deg,rgba(8,15,29,0.96),rgba(15,23,42,0.88))] p-6 text-white shadow-[0_22px_70px_rgba(2,6,23,0.3)]"
+      >
+        <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p className="text-[11px] font-semibold tracking-[0.22em] text-cyan-300/75">
+              SAVED REPORTS
+            </p>
+            <h2 className="mt-2 text-2xl font-bold">Recent video comparisons</h2>
+            <p className="mt-2 text-sm text-slate-300">
+              Reopen a previous comparison from the dashboard and continue exploring the analysis.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/app/compare")}
+            className="inline-flex items-center justify-center rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+          >
+            Open Compare Studio
+          </button>
+        </div>
+
+        {compareHistoryLoading ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[0, 1, 2].map((index) => (
+              <div key={index} className="h-36 animate-pulse rounded-2xl bg-white/5" />
+            ))}
+          </div>
+        ) : compareHistory.length === 0 ? (
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-sm text-slate-300">
+            No saved video comparisons yet. Run a comparison to populate this section.
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {compareHistory.slice(0, 6).map((entry, index) => (
+              <button
+                key={`${entry.created_at}-${index}`}
+                onClick={() =>
+                  navigate("/app/compare", {
+                    state: { historyEntry: entry }
+                  })
+                }
+                className="rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition hover:-translate-y-1 hover:border-cyan-400/30 hover:bg-white/10"
+              >
+                <p className="text-xs uppercase tracking-[0.2em] text-cyan-300/75">
+                  {new Date(entry.created_at).toLocaleString()}
+                </p>
+                <h3 className="mt-2 text-lg font-semibold">
+                  {entry.response.video1.stats.title}
+                </h3>
+                <p className="text-sm text-slate-300">
+                  vs {entry.response.video2.stats.title}
+                </p>
+                <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
+                  <span>Winner: {entry.response.comparison.winner}</span>
+                  <span>{entry.response.comparison.positivity_difference.toFixed(1)}% gap</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </motion.div>
     </div>
   )
