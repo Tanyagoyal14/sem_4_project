@@ -24,7 +24,7 @@ from models import (
     FeedbackBatchInput,
     FeedbackInput,
 )
-from security import consume_user_credits, get_current_user, require_premium_user
+from security import consume_user_credits, get_current_user
 
 router = APIRouter(tags=["feedback"])
 
@@ -285,8 +285,9 @@ def get_feedback_history(current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/download-weekly-report")
-def download_weekly_report(format: str = "csv", _premium_user: dict = Depends(require_premium_user)):
+def download_weekly_report(format: str = "csv", current_user: dict = Depends(get_current_user)):
     try:
+        updated_user = consume_user_credits(current_user, 15)
         last_week = datetime.utcnow() - timedelta(days=7)
         data = list(
             feedback_collection.find(

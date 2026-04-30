@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pymongo.errors import DuplicateKeyError, PyMongoError
 
 from db import users_collection
-from models import AuthResponse, LoginRequest, SignupRequest, UserPublic
+from models import AuthResponse, DeductCreditsRequest, LoginRequest, SignupRequest, UserPublic
 from security import (
     create_access_token,
     get_current_user,
@@ -106,3 +106,29 @@ def me(current_user: dict = Depends(get_current_user)):
         "credits": int(current_user.get("credits", 200)),
         "created_at": current_user.get("created_at"),
     }
+
+
+@router.post("/deduct-credits")
+def deduct_credits(request: DeductCreditsRequest, current_user: dict = Depends(get_current_user)):
+    try:
+        current_credits = int(current_user.get("credits", 200))
+        if current_credits < request.amount:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Insufficient credits",
+            )
+
+        new_credits = current_credits - request.amount
+        users_collection.update_one(
+            {"_id": current_user["_id"]},
+            {"$set": {"credits": new_credits}},
+        )
+
+        return {"message": "Credits deducted successfully", "remaining_credits": new_credits}
+    except HTTPException:
+        raise
+    except PyMongoError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=f"Database connection issue: {exc}",
+        ) from exc

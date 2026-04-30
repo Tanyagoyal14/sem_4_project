@@ -1,9 +1,8 @@
 import { motion } from "framer-motion"
-import { isPremiumUser } from "../utils/auth"
+import { getStoredToken, getStoredUser } from "../utils/auth"
 import { apiFetch } from "../utils/api"
 
 function Reports() {
-  const premiumUser = isPremiumUser()
   const reports = [
     {
       title: "Weekly Sentiment Report",
@@ -22,28 +21,51 @@ function Reports() {
     }
   ]
 
-  const downloadReport = (format: string) => {
-    if (!premiumUser) return
+  const downloadReport = async (format: string) => {
+    const user = getStoredUser()
+    const token = getStoredToken()
 
-    apiFetch(`/download-weekly-report?format=${format}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          throw new Error(await res.text())
+    if (!token) {
+      alert("Please login before downloading reports.")
+      return
+    }
+
+    if (!user || (user.credits ?? 0) < 15) {
+      alert("Insufficient credits. You need at least 15 credits to download reports.")
+      return
+    }
+
+    try {
+      const downloadRes = await apiFetch(`/download-weekly-report?format=${format}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      if (!downloadRes.ok) {
+        const body = await downloadRes.text()
+        if (downloadRes.status === 401 || downloadRes.status === 403) {
+          alert(`Unauthorized: ${body || 'Please login again.'}`)
+          return
         }
+        throw new Error(body)
+      }
 
-        const blob = await res.blob()
-        const url = window.URL.createObjectURL(blob)
-        const link = document.createElement("a")
-        link.href = url
-        link.download = `report.${format}`
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        window.URL.revokeObjectURL(url)
-      })
-      .catch((error) => {
-        console.error("Report download failed:", error)
-      })
+      const blob = await downloadRes.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `report.${format}`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      alert("Report downloaded successfully! 15 credits deducted.")
+    } catch (error) {
+      console.error("Download failed:", error)
+      alert("Download failed. Please try again.")
+    }
   }
 
   return (
@@ -75,10 +97,9 @@ function Reports() {
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => downloadReport(report.format)}
-              disabled={!premiumUser}
-              className="rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-sky-500 px-5 py-2 text-white shadow-[0_10px_25px_rgba(34,197,94,0.28)] transition hover:shadow-[0_14px_30px_rgba(34,197,94,0.36)] disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-xl bg-gradient-to-r from-cyan-500 via-emerald-500 to-sky-500 px-5 py-2 text-white shadow-[0_10px_25px_rgba(34,197,94,0.28)] transition hover:shadow-[0_14px_30px_rgba(34,197,94,0.36)]"
             >
-              {premiumUser ? `Download ${report.format.toUpperCase()}` : "Premium Locked"}
+              Download (15 credits)
             </motion.button>
           </motion.div>
         ))}

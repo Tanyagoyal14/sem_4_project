@@ -49,6 +49,10 @@ class AuthResponse(BaseModel):
     token_type: Optional[str] = "bearer"
 
 
+class DeductCreditsRequest(BaseModel):
+    amount: int = Field(gt=0)
+
+
 class ProfileModel(BaseModel):
     name: str
     email: EmailStr
