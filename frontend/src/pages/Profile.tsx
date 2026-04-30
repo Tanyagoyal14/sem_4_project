@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 
+import { getStoredUser } from "../utils/auth"
+import { apiFetch } from "../utils/api"
+
 const avatars = [
   "https://api.dicebear.com/7.x/bottts/svg?seed=AI",
   "https://api.dicebear.com/7.x/adventurer/svg?seed=Dev",
@@ -13,7 +16,7 @@ const avatars = [
 function Profile() {
 
   const [profile, setProfile] = useState({
-    name: "Admin",
+    name: "",
     email: "",
     company: "",
     role: "AI Analyst",
@@ -21,20 +24,79 @@ function Profile() {
   })
 
   const [showAvatars, setShowAvatars] = useState(false)
+  const [loading, setLoading] = useState(true)
 
-  // 🔥 Load profile from localStorage
+  // 🔥 Load profile from backend or set defaults
   useEffect(() => {
-    const saved = localStorage.getItem("profile")
+    const loadProfile = async () => {
+      const user = getStoredUser()
+      if (!user?.email) {
+        setLoading(false)
+        return
+      }
 
-    if (saved) {
-      setProfile(JSON.parse(saved))
+      try {
+        const res = await apiFetch(`/profile/get-profile?email=${encodeURIComponent(user.email)}`)
+        const data = await res.json()
+
+        if (data && Object.keys(data).length > 0) {
+          setProfile({
+            name: data.name || user.email,
+            email: data.email || user.email,
+            company: data.company || "",
+            role: data.role || "AI Analyst",
+            avatar: data.avatar || avatars[0]
+          })
+        } else {
+          // No profile saved, set defaults with user's email
+          setProfile(prev => ({
+            ...prev,
+            name: user.email!,
+            email: user.email!
+          }))
+        }
+      } catch (error) {
+        console.error("Failed to load profile:", error)
+        // Fallback to defaults
+        setProfile(prev => ({
+          ...prev,
+          name: user.email!,
+          email: user.email!
+        }))
+      } finally {
+        setLoading(false)
+      }
     }
+
+    loadProfile()
   }, [])
 
-  // 🔥 Save profile
-  const saveProfile = () => {
-    localStorage.setItem("profile", JSON.stringify(profile))
-    alert("Profile saved successfully 🚀")
+  // 🔥 Save profile to backend and localStorage
+  const saveProfile = async () => {
+    try {
+      const res = await apiFetch("/profile/save-profile", {
+        method: "POST",
+        body: JSON.stringify(profile)
+      })
+
+      if (res.ok) {
+        localStorage.setItem("profile", JSON.stringify(profile))
+        alert("Profile saved successfully 🚀")
+      } else {
+        throw new Error("Failed to save profile")
+      }
+    } catch (error) {
+      console.error("Save profile error:", error)
+      alert("Failed to save profile. Please try again.")
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8 text-white min-h-screen bg-gradient-to-br from-purple-900 via-black to-pink-900 flex items-center justify-center">
+        <div>Loading profile...</div>
+      </div>
+    )
   }
 
   return (
