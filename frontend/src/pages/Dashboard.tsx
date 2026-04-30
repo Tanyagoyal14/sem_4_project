@@ -52,13 +52,20 @@ const getStoredDashboardState = () => {
   }
 }
 
+const getStoredFeedbackHistory = () => {
+  try {
+    const parsed = readStoredFeedbackStream()
+    return Array.isArray(parsed) ? normalizeStatsItems(parsed) : []
+  } catch (error) {
+    console.error("Unable to read saved dashboard feedback history:", error)
+    return []
+  }
+}
+
 function Dashboard() {
   const navigate = useNavigate()
   const { stream, addFeedback } = useFeedbackStream()
   const storedState = getStoredDashboardState()
-  const storedStreamValue = readStoredFeedbackStream()
-  const storedStream = Array.isArray(storedStreamValue) ? storedStreamValue : []
-
   const [feedback, setFeedback] = useState(storedState.feedback)
   const [industryData, setIndustryData] = useState<any[]>(storedState.industryData)
   const [csat, setCsat] = useState(storedState.csat)
@@ -111,21 +118,25 @@ function Dashboard() {
     try {
       const res = await apiFetch("/feedback-history")
       if (!res.ok) {
-        setHistoryStatsSource([])
+        setHistoryStatsSource(getStoredFeedbackHistory())
         return
       }
 
       const data = await res.json()
-      const history = normalizeStatsItems(Array.isArray(data.history) ? data.history : [])
-      setHistoryStatsSource(history)
+      const remoteHistory = normalizeStatsItems(Array.isArray(data.history) ? data.history : [])
+      const localHistory = getStoredFeedbackHistory()
+      setHistoryStatsSource(remoteHistory.length > 0 ? remoteHistory : localHistory)
     } catch (error) {
       console.error("Unable to load dashboard history stats:", error)
-      setHistoryStatsSource([])
+      setHistoryStatsSource(getStoredFeedbackHistory())
     }
   }
 
   useEffect(() => {
     loadDashboardHistory()
+
+    const interval = setInterval(loadDashboardHistory, 5000)
+    return () => clearInterval(interval)
   }, [])
 
   const feedbackList = useMemo(
@@ -138,13 +149,13 @@ function Dashboard() {
         return historyStatsSource.map((item) => item.feedback || item.text).filter(Boolean)
       }
 
-      return storedStream.map((item: any) => item.feedback || item.text).filter(Boolean)
+      return []
     },
-    [results, historyStatsSource, storedStream]
+    [results, historyStatsSource]
   )
 
   const stats = useMemo(() => {
-    const sourceItems = historyStatsSource.length > 0 ? historyStatsSource : storedStream
+    const sourceItems = historyStatsSource
     const calculated = calculateFeedbackStats(sourceItems)
 
     return {
@@ -153,7 +164,7 @@ function Dashboard() {
       negative: calculated.negative,
       csat: calculated.csat || csat,
     }
-  }, [results, historyStatsSource, storedStream, csat])
+  }, [results, historyStatsSource, csat])
 
   const analyze = async () => {
     if (!feedback.trim()) return
@@ -436,7 +447,7 @@ Payment failed`}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <LiveFeed stream={stream} />
+          <LiveFeed stream={historyStatsSource} />
         </motion.div>
       </div>
 
