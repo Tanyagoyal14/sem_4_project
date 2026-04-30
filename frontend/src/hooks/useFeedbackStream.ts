@@ -1,12 +1,9 @@
 import { useEffect, useState } from "react"
-import { getFeedbackStreamStorageKey } from "../utils/feedbackStorage"
+import { readStoredFeedbackStream, saveStoredFeedbackStream } from "../utils/feedbackStorage"
 
 const getStoredStream = () => {
   try {
-    const saved = localStorage.getItem(getFeedbackStreamStorageKey())
-    if (!saved) return []
-
-    const parsed = JSON.parse(saved)
+    const parsed = readStoredFeedbackStream()
     return Array.isArray(parsed) ? parsed : []
   } catch (error) {
     console.error("Unable to read saved feedback stream:", error)
@@ -18,7 +15,7 @@ export default function useFeedbackStream() {
   const [stream, setStream] = useState<any[]>(getStoredStream)
 
   useEffect(() => {
-    localStorage.setItem(getFeedbackStreamStorageKey(), JSON.stringify(stream))
+    saveStoredFeedbackStream(stream)
   }, [stream])
 
   const addFeedback = (text: string, sentiment: string) => {

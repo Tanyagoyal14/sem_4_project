@@ -13,3 +13,31 @@ export const getFeedbackStreamStorageKey = () =>
 
 export const getDashboardStateStorageKey = () =>
   buildScopedStorageKey(DASHBOARD_STATE_STORAGE_PREFIX)
+
+const readParsedStorageValue = (key: string) => {
+  try {
+    const saved = localStorage.getItem(key)
+    if (!saved) return null
+
+    return JSON.parse(saved)
+  } catch (error) {
+    console.error(`Unable to read saved storage value for ${key}:`, error)
+  }
+  return null
+}
+
+export const readStoredFeedbackStream = () =>
+  readParsedStorageValue(getFeedbackStreamStorageKey())
+
+export const saveStoredFeedbackStream = (value: unknown) => {
+  const serialized = JSON.stringify(value)
+  localStorage.setItem(getFeedbackStreamStorageKey(), serialized)
+}
+
+export const readStoredDashboardState = () =>
+  readParsedStorageValue(getDashboardStateStorageKey())
+
+export const saveStoredDashboardState = (value: unknown) => {
+  const serialized = JSON.stringify(value)
+  localStorage.setItem(getDashboardStateStorageKey(), serialized)
+}

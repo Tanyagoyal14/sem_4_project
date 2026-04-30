@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { apiFetch } from "../utils/api"
-import { getFeedbackStreamStorageKey } from "../utils/feedbackStorage"
+import { readStoredFeedbackStream } from "../utils/feedbackStorage"
 
 const getStoredFeedbackHistory = () => {
   try {
-    const saved = localStorage.getItem(getFeedbackStreamStorageKey())
-    if (!saved) return []
-
-    const parsed = JSON.parse(saved)
+    const parsed = readStoredFeedbackStream()
     return Array.isArray(parsed) ? parsed : []
   } catch (error) {
     console.error("Unable to read saved feedback history:", error)
