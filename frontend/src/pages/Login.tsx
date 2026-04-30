@@ -117,7 +117,14 @@ function Login() {
               placeholder="Enter your password"
               required
               minLength={8}
+              pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+              title="Password must be at least 8 characters and include letters, numbers, and a special character."
             />
+            {mode === "signup" && (
+              <p className="mt-2 text-xs text-slate-400">
+                Use at least 8 characters with letters, numbers, and a special character.
+              </p>
+            )}
           </div>
 
           {error && (

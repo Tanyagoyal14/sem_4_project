@@ -64,7 +64,7 @@ const getStoredFeedbackHistory = () => {
 
 function Dashboard() {
   const navigate = useNavigate()
-  const { stream, addFeedback } = useFeedbackStream()
+  const { addFeedback } = useFeedbackStream()
   const storedState = getStoredDashboardState()
   const [feedback, setFeedback] = useState(storedState.feedback)
   const [industryData, setIndustryData] = useState<any[]>(storedState.industryData)
