@@ -9,9 +9,8 @@ import LiveFeed from "../components/LiveFeed"
 import AIInsights from "../components/AIInsights"
 import useFeedbackStream from "../hooks/useFeedbackStream"
 import { apiFetch } from "../utils/api"
+import { getDashboardStateStorageKey } from "../utils/feedbackStorage"
 import { getAuthCredits, getAuthRole, updateStoredCredits } from "../utils/auth"
-
-const DASHBOARD_STORAGE_KEY = "dashboard_page_state"
 
 type CompareHistoryItem = {
   created_at: string
@@ -25,7 +24,7 @@ type CompareHistoryItem = {
 
 const getStoredDashboardState = () => {
   try {
-    const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY)
+    const saved = localStorage.getItem(getDashboardStateStorageKey())
     if (!saved) {
       return {
         feedback: "",
@@ -76,7 +75,7 @@ function Dashboard() {
 
   useEffect(() => {
     localStorage.setItem(
-      DASHBOARD_STORAGE_KEY,
+      getDashboardStateStorageKey(),
       JSON.stringify({
         feedback,
         industryData,

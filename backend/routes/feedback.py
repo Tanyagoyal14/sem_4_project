@@ -252,10 +252,13 @@ async def upload_csv(
 
 
 @router.get("/feedback-history")
-def get_feedback_history(_current_user: dict = Depends(get_current_user)):
+def get_feedback_history(current_user: dict = Depends(get_current_user)):
     try:
         data = list(
-            feedback_collection.find({}, {"_id": 0}).sort("created_at", -1)
+            feedback_collection.find(
+                {"user_id": str(current_user["_id"])},
+                {"_id": 0},
+            ).sort("created_at", -1)
         )
         return {"history": jsonable_encoder(data)}
     except PyMongoError as exc:

@@ -3,6 +3,41 @@ import { motion } from "framer-motion"
 import { useLocation } from "react-router-dom"
 import IndustryPieChart from "../components/IndustryPieChart"
 import { apiFetch } from "../utils/api"
+import { getFeedbackStreamStorageKey } from "../utils/feedbackStorage"
+
+const getStoredFeedbackHistory = () => {
+  try {
+    const saved = localStorage.getItem(getFeedbackStreamStorageKey())
+    if (!saved) return []
+
+    const parsed = JSON.parse(saved)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    console.error("Unable to read saved analytics history:", error)
+    return []
+  }
+}
+
+const matchesSelectedIndustry = (item: any, selectedIndustry?: string) => {
+  if (!selectedIndustry) return true
+
+  return (
+    item.industry === selectedIndustry ||
+    item.feedback_type === selectedIndustry ||
+    Array.isArray(item.top_industries) &&
+      item.top_industries.some((entry: any) =>
+        entry.industry === selectedIndustry || entry.name === selectedIndustry
+      )
+  )
+}
+
+const normalizeLocalHistory = (items: any[]) =>
+  items.map((item) => ({
+    ...item,
+    sentiment:
+      String(item.sentiment || "").charAt(0).toUpperCase() +
+      String(item.sentiment || "").slice(1).toLowerCase(),
+  }))
 
 function Analytics() {
   const location = useLocation()
@@ -22,22 +57,12 @@ function Analytics() {
       try {
         const res = await apiFetch("/feedback-history")
         const data = await res.json()
-
-        if (!data || !data.history) {
-          setHistory([])
-          return
-        }
-
-        let filtered = data.history
-
-        if (selectedIndustry) {
-          filtered = filtered.filter((item: any) =>
-            item.industry === selectedIndustry ||
-            item.feedback_type === selectedIndustry ||
-            Array.isArray(item.top_industries) &&
-              item.top_industries.some((entry: any) => entry.industry === selectedIndustry)
-          )
-        }
+        const remoteHistory = Array.isArray(data?.history) ? data.history : []
+        const localHistory = normalizeLocalHistory(getStoredFeedbackHistory())
+        const sourceHistory = remoteHistory.length > 0 ? remoteHistory : localHistory
+        const filtered = sourceHistory.filter((item: any) =>
+          matchesSelectedIndustry(item, selectedIndustry)
+        )
 
         setHistory(filtered)
 
@@ -46,7 +71,10 @@ function Analytics() {
         setCsat(total > 0 ? Math.round((positive / total) * 100) : 0)
       } catch (error) {
         console.error("Analytics error:", error)
-        setHistory([])
+        const fallbackHistory = normalizeLocalHistory(getStoredFeedbackHistory()).filter((item: any) =>
+          matchesSelectedIndustry(item, selectedIndustry)
+        )
+        setHistory(fallbackHistory)
       }
     }
 

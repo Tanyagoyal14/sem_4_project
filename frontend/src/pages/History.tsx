@@ -1,6 +1,20 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import { apiFetch } from "../utils/api"
+import { getFeedbackStreamStorageKey } from "../utils/feedbackStorage"
+
+const getStoredFeedbackHistory = () => {
+  try {
+    const saved = localStorage.getItem(getFeedbackStreamStorageKey())
+    if (!saved) return []
+
+    const parsed = JSON.parse(saved)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    console.error("Unable to read saved feedback history:", error)
+    return []
+  }
+}
 
 function History() {
   const [history, setHistory] = useState<any[]>([])
@@ -10,10 +24,12 @@ function History() {
     try {
       const res = await apiFetch("/feedback-history")
       const data = await res.json()
-      setHistory(data.history || [])
+      const remoteHistory = Array.isArray(data.history) ? data.history : []
+      const localHistory = getStoredFeedbackHistory()
+      setHistory(remoteHistory.length > 0 ? remoteHistory : localHistory)
     } catch (error) {
       console.error("History error:", error)
-      setHistory([])
+      setHistory(getStoredFeedbackHistory())
     } finally {
       setLoading(false)
     }
@@ -78,7 +94,9 @@ function History() {
                   <td className="p-3 text-purple-400">{item.feedback_type}</td>
                   <td className="p-3">{item.top_industries?.[0]?.industry || "-"}</td>
                   <td className="p-3 text-sm text-slate-500 dark:text-gray-400">
-                    {new Date(item.timestamp).toLocaleString()}
+                    {item.created_at
+                      ? new Date(item.created_at).toLocaleString()
+                      : item.timestamp || "-"}
                   </td>
                 </motion.tr>
               ))}

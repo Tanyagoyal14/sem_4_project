@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react"
-
-const FEEDBACK_STREAM_STORAGE_KEY = "dashboard_feedback_stream"
+import { getFeedbackStreamStorageKey } from "../utils/feedbackStorage"
 
 const getStoredStream = () => {
   try {
-    const saved = localStorage.getItem(FEEDBACK_STREAM_STORAGE_KEY)
+    const saved = localStorage.getItem(getFeedbackStreamStorageKey())
     if (!saved) return []
 
     const parsed = JSON.parse(saved)
@@ -19,7 +18,7 @@ export default function useFeedbackStream() {
   const [stream, setStream] = useState<any[]>(getStoredStream)
 
   useEffect(() => {
-    localStorage.setItem(FEEDBACK_STREAM_STORAGE_KEY, JSON.stringify(stream))
+    localStorage.setItem(getFeedbackStreamStorageKey(), JSON.stringify(stream))
   }, [stream])
 
   const addFeedback = (text: string, sentiment: string) => {
