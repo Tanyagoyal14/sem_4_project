@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import os
 import re
 from typing import List, Optional
+from uuid import uuid4
 
 import pandas as pd
 from deep_translator import GoogleTranslator
@@ -142,6 +143,9 @@ def build_analysis(
     texts: List[str],
     user_id: Optional[str] = None,
     credits_remaining: Optional[int] = None,
+    batch_id: Optional[str] = None,
+    batch_name: Optional[str] = None,
+    source_type: str = "manual",
 ) -> List[FeedbackAnalysisItem]:
     translated = [translate(text) for text in texts]
 
@@ -166,6 +170,9 @@ def build_analysis(
 
         document = {
             "user_id": user_id,
+            "batch_id": batch_id,
+            "batch_name": batch_name,
+            "source_type": source_type,
             "feedback": text,
             "translated_feedback": translated[index],
             "sentiment": sentiment,
@@ -180,6 +187,9 @@ def build_analysis(
             FeedbackAnalysisItem(
                 id=str(inserted.inserted_id),
                 user_id=user_id,
+                batch_id=batch_id,
+                batch_name=batch_name,
+                source_type=source_type,
                 feedback=text,
                 translated_feedback=translated[index],
                 sentiment=sentiment,
@@ -203,7 +213,7 @@ def create_feedback(
         updated_user = consume_user_credits(current_user, 1)
         remaining = int(updated_user.get("credits", 0))
         user_id = payload.user_id or str(current_user["_id"])
-        return build_analysis([payload.feedback], user_id, remaining)[0]
+        return build_analysis([payload.feedback], user_id, remaining, source_type="manual")[0]
     except PyMongoError as exc:
         raise HTTPException(status_code=503, detail=f"Database connection issue: {exc}") from exc
 
@@ -224,7 +234,7 @@ def analyze_feedback(
         updated_user = consume_user_credits(current_user, len(texts))
         remaining = int(updated_user.get("credits", 0))
         user_id = payload.user_id or str(current_user["_id"])
-        results = build_analysis(texts, user_id, remaining)
+        results = build_analysis(texts, user_id, remaining, source_type="manual")
         return {"results": results, "total": len(results), "credits_remaining": remaining}
     except PyMongoError as exc:
         raise HTTPException(status_code=503, detail=f"Database connection issue: {exc}") from exc
@@ -243,7 +253,16 @@ async def upload_csv(
         texts = df["feedback"].dropna().astype(str).tolist()
         updated_user = consume_user_credits(current_user, len(texts))
         remaining = int(updated_user.get("credits", 0))
-        results = build_analysis(texts, str(current_user["_id"]), remaining)
+        batch_id = uuid4().hex
+        batch_name = file.filename or f"csv-upload-{batch_id[:8]}.csv"
+        results = build_analysis(
+            texts,
+            str(current_user["_id"]),
+            remaining,
+            batch_id=batch_id,
+            batch_name=batch_name,
+            source_type="csv",
+        )
         return {"results": results, "total": len(results), "credits_remaining": remaining}
     except HTTPException:
         raise

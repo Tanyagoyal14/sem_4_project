@@ -71,6 +71,9 @@ class FeedbackBatchInput(BaseModel):
 class FeedbackAnalysisItem(BaseModel):
     id: str
     user_id: Optional[str] = None
+    batch_id: Optional[str] = None
+    batch_name: Optional[str] = None
+    source_type: Optional[str] = "manual"
     feedback: str
     translated_feedback: Optional[str] = None
     sentiment: str

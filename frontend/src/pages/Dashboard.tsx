@@ -62,6 +62,13 @@ const getStoredFeedbackHistory = () => {
   }
 }
 
+const normalizeDashboardResults = (items: any[], source: "manual" | "csv", batchId?: string) =>
+  normalizeStatsItems(items).map((item: any) => ({
+    ...item,
+    source,
+    batchId: item.batchId || item.batch_id || batchId,
+  }))
+
 function Dashboard() {
   const navigate = useNavigate()
   const { addFeedback } = useFeedbackStream()
@@ -195,7 +202,10 @@ function Dashboard() {
       }
 
       const data = await res.json()
-      const resultList = normalizeStatsItems(Array.isArray(data.results) ? data.results : [])
+      const resultList = normalizeDashboardResults(
+        Array.isArray(data.results) ? data.results : [],
+        "manual"
+      )
 
       if (typeof data.credits_remaining === "number") {
         updateStoredCredits(data.credits_remaining)
@@ -250,7 +260,12 @@ function Dashboard() {
       }
 
       const data = await res.json()
-      const resultList = normalizeStatsItems(Array.isArray(data.results) ? data.results : [])
+      const fallbackBatchId = String(Date.now())
+      const resultList = normalizeDashboardResults(
+        Array.isArray(data.results) ? data.results : [],
+        "csv",
+        fallbackBatchId
+      )
 
       if (typeof data.credits_remaining === "number") {
         updateStoredCredits(data.credits_remaining)
