@@ -166,8 +166,8 @@ Tier-based access
 🎥 YouTube Processing Pipeline
 URL → Video ID Extraction → Comment Fetching → NLP Processing → Sentiment Output
 
+## 📈 System Flowchart
 
-📈 Flowchart
 <p align="center">
   <img src="assets/flowchart.png" alt="Sentilytics Flowchart" width="750">
 </p>
