@@ -7,12 +7,12 @@ services:
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: MONGODB_URI
-        sync: false # Iski value aap Render dashboard par manually daal dena
+        sync: false
       - key: PYTHON_VERSION
         value: 3.11.0
 
-  # 2. Frontend Service (React/Vite)
-  - type: static
+  # 2. Frontend Service (React/Vite) - Yahan "static_site" aayega
+  - type: static_site
     name: sem4-frontend
     runtime: static
     buildCommand: cd frontend && npm install && npm run build
