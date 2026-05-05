@@ -448,13 +448,13 @@ Payment failed`}
           transition={{ duration: 0.6 }}
         >
           <IndustryPieChart
-            data={industryData}
-            onSliceClick={(entry) => {
-              navigate("/app/analytics", {
-                state: { selectedIndustry: entry.name }
-              })
-            }}
-          />
+  data={industryData.filter(
+    (item) =>
+      item &&
+      typeof item.value === "number" &&
+      !isNaN(item.value)
+  )}
+/>
         </motion.div>
 
         <motion.div
@@ -550,7 +550,11 @@ Payment failed`}
                 </p>
                 <div className="mt-4 flex items-center justify-between text-xs text-slate-400">
                   <span>Winner: {entry.response.comparison.winner}</span>
-                  <span>{entry.response.comparison.positivity_difference.toFixed(1)}% gap</span>
+                  <span>
+                    {typeof entry.response?.comparison?.positivity_difference === "number"
+                    ? entry.response.comparison.positivity_difference.toFixed(1)
+                    : "0.0"}% gap
+                </span>
                 </div>
               </button>
             ))}

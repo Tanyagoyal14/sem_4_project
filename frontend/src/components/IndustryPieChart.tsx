@@ -105,9 +105,12 @@ const normalizeData = (data?: RawPredictionItem[]) =>
   (data ?? [])
     .map((item) => {
       const name = item.name || item.industry || "Unknown"
+      const raw = getRawValue(item)
+      const safeValue = Number.isFinite(raw) ? raw : 0
+
       return {
         name,
-        value: Number(getRawValue(item)) || 0,
+        value: safeValue,
         icon: item.icon || getIcon(name)
       }
     })
