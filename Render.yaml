@@ -2,7 +2,7 @@ services:
   # 1. Backend Service (Python/FastAPI)
   - type: web
     name: sem4-backend
-    runtime: python
+    env: python
     buildCommand: pip install -r backend/requirements.txt
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -11,10 +11,10 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.0
 
-  # 2. Frontend Service (React/Vite) - Yahan "static_site" aayega
-  - type: static_site
+  # 2. Frontend Service (Static Site)
+  - type: web
     name: sem4-frontend
-    runtime: static
+    env: static
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
     envVars:
