@@ -15,9 +15,7 @@
 
 ## ✨ Overview
 
-**Sentilytics** is an intelligent feedback analysis platform that leverages **Machine Learning and Natural Language Processing (NLP)** to automatically analyze user opinions, detect sentiment, and visualize insights.
-
-It helps businesses, educators, and developers **understand feedback at scale** — via text, datasets, or YouTube comments.
+**Sentilytics** is an intelligent feedback analysis platform that leverages **Machine Learning and Natural Language Processing (NLP)** to analyze user opinions and detect sentiment.
 
 ---
 
@@ -34,152 +32,77 @@ It helps businesses, educators, and developers **understand feedback at scale** 
 
 ## 🧩 Core Features
 
-### 🔍 Sentiment Analysis Engine
-- Classifies feedback into:
-  - Positive ✅  
-  - Negative ❌  
-  - Neutral ⚖️  
-- Built using **Scikit-learn**
-- Uses **TF-IDF vectorization**
+### 🔍 Sentiment Analysis
+- Positive / Negative / Neutral classification  
+- Built with Scikit-learn  
+- Uses TF-IDF  
 
 ---
 
-### 📊 Analytics Dashboard
-- Interactive charts and insights  
-- Sentiment distribution visualization  
-- Clean and intuitive UI  
+### 📊 Dashboard
+- Charts and insights  
+- Clean UI  
 
 ---
 
-### 🎥 YouTube URL Analysis *(Advanced Feature)*
-- Input any YouTube video URL  
-- Automatically extracts comments  
-- Performs sentiment analysis  
-
-**Outputs:**
-- Sentiment distribution  
-- Audience insights  
-- Trend patterns  
+### 🎥 YouTube Analysis
+- Input video URL  
+- Extract comments  
+- Perform sentiment analysis  
 
 ---
 
-### 💳 Credit System *(System Design Feature)*
+### 💳 Credit System
 
-| Action | Credits Used |
-|--------|------------|
-| Single Prediction | 1 Credit |
-| Dataset Analysis | Variable |
-| YouTube Analysis | Higher Credits |
-
-**Benefits:**
-- Prevents misuse  
-- Enables scalability  
-- Supports future monetization  
+| Action | Credits |
+|--------|--------|
+| Single Prediction | 1 |
+| Dataset | Variable |
+| YouTube | Higher |
 
 ---
 
-### 🧾 Multi-Input Support
-- ✍️ Manual text input  
-- 📁 CSV upload  
-- 🎥 YouTube URL  
-
----
-
-### 🔐 Authentication 
-- User login/signup  
-- Credit tracking  
-- Personalized usage  
+### 🧾 Inputs
+- Text  
+- CSV  
+- YouTube URL  
 
 ---
 
 ## 🏗️ Tech Stack
 
-| Layer | Technology |
-|------|-----------|
-| Frontend | React.js, Tailwind CSS |
-| Backend | Flask (Python) |
-| ML/NLP | Scikit-learn, Pandas, NumPy |
-| Visualization | Recharts / Matplotlib |
-| Database | MongoDB / MySQL |
+| Layer | Tech |
+|------|------|
+| Frontend | React |
+| Backend | Flask |
+| ML | Scikit-learn |
+| DB | MongoDB/MySQL |
 
 ---
 
 ## ⚙️ System Architecture
 
-User Input → Preprocessing → ML Model → Prediction → Visualization → Credit Deduction
+User Input → Preprocessing → Model → Prediction → Dashboard → Credit Deduction
 
 ---
 
-## 📂 Project Structure
-sem_4_project/
-│
-├── backend/
-│ ├── app.py
-│ ├── model/
-│ ├── utils/
-│
-├── frontend/
-│ ├── components/
-│ ├── pages/
-│
-├── dataset/
-├── assets/
-│ └── flowchart.png
-├── README.md
+📈 System Flowchart
+<p align="center"> <img src="assets/flowchart.png" width="750"/> </p> <p align="center"> <i>End-to-end workflow of the Sentilytics system</i> </p>
 
----
-
-## ⚙️ Installation & Setup
-
-### 1️⃣ Clone Repository
-```bash
-git clone https://github.com/Tanyagoyal14/sem_4_project.git
-cd sem_4_project
-
-cd backend
-pip install -r requirements.txt
-python app.py
-
-cd frontend
-npm install
-npm run dev
-'''
-
-🔄 How It Works
-User provides input (text / dataset / YouTube URL)
-Data is cleaned and preprocessed
-ML model predicts sentiment
-Results are visualized
-Credits are deducted
-
-🎥 YouTube Processing Pipeline
-URL → Video ID Extraction → Comment Fetching → NLP Processing → Sentiment Output
-
-## 📈 System Flowchart
-
-<p align="center">
-  <img src="assets/flowchart.png" width="750"/>
-</p>
-
-<p align="center">
-  <i>End-to-end workflow of the Sentilytics feedback analysis pipeline</i>
-</p>
 
 👨‍💻 Team Members
 Ayushi Bansal
 Tanya Goyal
 Tanisha Tayal
 
-
 🔮 Future Enhancements
-🤖 Transformer models (BERT, LLMs)
+🤖 BERT / LLMs
 📊 Advanced analytics
-📱 Mobile responsiveness
-🔔 Notification system
-
+📱 Mobile UI
+🔔 Notifications
 📜 License
 
-Developed for academic and learning purposes.
+Developed for academic purposes.
 
 💡 Acknowledgements
 Scikit-learn
@@ -189,4 +112,5 @@ Open-source community
 📬 Contact
 https://github.com/Ayushibansal805
 https://github.com/Tanyagoyal14
+
 <p align="center"> ⭐ If you found this project useful, consider giving it a star! </p> ```
