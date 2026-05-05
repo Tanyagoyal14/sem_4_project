@@ -1,382 +1,110 @@
-# 🚀 Sentilytics
-
-### Turn Feedback into Intelligence
-
-Sentilytics is an AI-powered feedback intelligence platform that transforms raw customer feedback into actionable business insights using **Natural Language Processing, Machine Learning, and Interactive Dashboards**.
-
----
-
-# 🧠 Project Overview
-
-Businesses receive thousands of feedback messages from users across reviews, surveys, and support systems.
-
-Manually analyzing this feedback is:
-
-❌ Time-consuming
-❌ Inefficient
-❌ Error-prone
-
-Sentilytics automates this process using AI to extract meaningful insights and visualize them in a modern dashboard.
-
----
-
-# ✨ Key Features
-
-## 🔍 AI Feedback Analysis
-
-Automatically detects:
-
-* Sentiment (Positive / Neutral / Negative)
-* Industry classification
-* Feedback type (Complaint, Suggestion, Praise, Question)
-* CSAT score
-
----
-
-## 📂 CSV Upload & Bulk Processing
-
-* Upload CSV files with multiple feedback entries
-* Supports batch processing for faster analysis ⚡
-* Optimized using transformer batch inference
-
-Example CSV format:
-
-```
-feedback
-Product acha hai
-App crash ho gaya
-Loved the experience
-```
-
----
-
-## 🌐 Hinglish Support
-
-Supports mixed Hindi-English feedback.
-
-Example:
-
-```
-Input:
-"ye app bahut slow hai"
-
-Translated:
-"This app is very slow"
-```
-
----
-
-## 📊 AI Analytics Dashboard
-
-Interactive dashboard built with React:
-
-* Sentiment distribution
-* Industry insights
-* CSAT score tracking
-* Live feedback stream
-* AI-powered recommendations
-
----
-
-## 🧠 AI Recommendation Engine
-
-Generates actionable insights:
-
-```
-Industry: Food Delivery  
-Recommendation: Improve delivery tracking and reduce delays  
-```
-
----
-
-## 🗂 Feedback History
-
-Stores analyzed feedback with:
-
-| Field     | Description              |
-| --------- | ------------------------ |
-| Feedback  | Original input           |
-| Sentiment | AI prediction            |
-| Industry  | Top predicted industries |
-| Type      | Complaint / Suggestion   |
-| Timestamp | Processing time          |
-
----
-
-## 📄 Report Generation
-
-Export insights as:
-
-* CSV
-* Excel
-* PDF
-
----
-
-# 🔄 System Flowchart
+# 🚀 Sentilytics – AI-Powered Feedback Intelligence Platform
 
 <p align="center">
-  <img src="./assets/flowchart.png" width="750"/>
+  <img src="https://img.shields.io/badge/Machine%20Learning-Enabled-orange?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/NLP-Powered-blue?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Frontend-React-black?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Backend-Flask-green?style=for-the-badge" />
 </p>
 
-<p align="center"><i>End-to-end AI feedback processing pipeline</i></p>
-
-# 🧠 AI Models Used
-
-## Sentiment Analysis
-
-```
-cardiffnlp/twitter-roberta-base-sentiment
-```
-
-* Detects Positive / Neutral / Negative sentiment
+<p align="center">
+  Transform raw feedback into actionable insights using AI, NLP, and real-time analytics.
+</p>
 
 ---
 
-## Zero-Shot Classification
+## ✨ Overview
 
-```
-facebook/bart-large-mnli
-```
+**Sentilytics** is an intelligent feedback analysis platform that leverages **Machine Learning and Natural Language Processing (NLP)** to automatically analyze user opinions, detect sentiment, and visualize insights.
 
-Used for:
-
-* Industry classification
-* Feedback type detection
+It is designed to help businesses, educators, and developers **understand user feedback at scale** — whether it's text input, datasets, or YouTube comments.
 
 ---
 
-# 📊 Example Analysis
+## 🎯 Key Highlights
 
-### Input
-
-```
-The delivery was late and the app crashed during payment.
-```
-
-### Output
-
-```
-Sentiment: Negative  
-Industry: Food Delivery  
-Feedback Type: Complaint  
-CSAT Score: 30%  
-```
+- 🧠 AI-driven sentiment classification  
+- 📊 Real-time interactive analytics dashboard  
+- 🎥 YouTube comment sentiment analysis  
+- 💳 Credit-based usage system  
+- 📁 Bulk dataset processing  
+- ⚡ Fast, scalable, and extensible architecture  
 
 ---
 
-# 🛠 Tech Stack
+## 🧩 Core Features
 
-## Frontend
-
-* React
-* TypeScript
-* TailwindCSS
-* Framer Motion
-* Recharts
-
-## Backend
-
-* FastAPI
-* Python
-
-## AI / NLP
-
-* HuggingFace Transformers
-* RoBERTa (Sentiment Analysis)
-* BART MNLI (Classification)
-
-## Translation
-
-* Deep Translator
-* Langdetect
-
-## Data Processing
-
-* Pandas
-* NumPy
-
-## Reports
-
-* ReportLab
-* OpenPyXL
+### 🔍 Sentiment Analysis Engine
+- Classifies feedback into:
+  - Positive ✅  
+  - Negative ❌  
+  - Neutral ⚖️  
+- Built using **Scikit-learn models**
+- Optimized with **TF-IDF vectorization**
 
 ---
 
-# 📂 Project Structure
-
-```
-backend/
-│
-├── main.py
-├── requirements.txt
-│
-frontend/
-│
-├── src/
-│   ├── components/
-│   ├── pages/
-│   ├── hooks/
-│   ├── styles/
-│   └── App.tsx
-```
+### 📊 Analytics Dashboard
+- Clean and interactive visualizations  
+- Sentiment distribution charts  
+- Insightful breakdown of feedback patterns  
 
 ---
 
-## 🛠️ Setup Instructions
+### 🎥 YouTube URL Analysis *(Advanced Feature)*
+Analyze public opinion directly from YouTube:
 
-Follow these steps to get **Sentilytics** up and running on your local machine.
+- Paste any video URL  
+- Extract comments automatically  
+- Run sentiment analysis on audience feedback  
 
----
-
-### 1. 📥 Clone the Repository
-
-```bash
-git clone https://github.com/yourusername/sentilytics.git
-cd sentilytics
-```
-
----
-
-### 2. ⚙️ Backend Setup (FastAPI)
-
-The backend handles data processing and logic.
-
-#### 📂 Navigate to backend
-
-```bash
-cd backend
-```
-
-#### 📦 Install dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-#### 🔐 Configure environment variables
-
-Copy [backend/.env.example](/Users/hp/Desktop/sempro/sem_4_project/backend/.env.example) to `backend/.env` and fill in:
-
-* `MONGO_URI`
-* `JWT_SECRET_KEY`
-* `YOUTUBE_API_KEY`
-
-#### ▶️ Run the server
-
-```bash
-uvicorn main:app --reload --port 8002
-```
+**Output includes:**
+- Sentiment distribution  
+- Trend insights  
+- Audience reaction patterns  
 
 ---
 
-### 3. 🎨 Frontend Setup (React)
+### 💳 Credit System *(System Design Feature)*
+A built-in usage control mechanism:
 
-Open a new terminal (keep backend running).
+| Action | Credits Used |
+|------|-------------|
+| Single Prediction | 1 Credit |
+| Dataset Analysis | Variable |
+| YouTube Analysis | Higher Credits |
 
-#### 📂 Navigate to frontend
-
-```bash
-cd frontend
-```
-
-#### 📦 Install libraries
-
-```bash
-npm install recharts framer-motion react-countup lottie-react d3
-```
-
-#### ▶️ Start development server
-
-```bash
-npm run dev
-```
+**Why it matters:**
+- Prevents misuse  
+- Enables scalability  
+- Supports future monetization  
 
 ---
 
-## 📄 Input CSV Format
-
-To use **Sentilytics**, upload a CSV file containing user feedback.
-
----
-
-### ✅ Required Column
-
-* **`feedback` (case-insensitive)**
-  Contains user comments (complaints, suggestions, praise)
-
-✔ Accepted formats:
-
-* `feedback`
-* `Feedback`
-* `FEEDBACK`
-* `feedBack`
+### 🧾 Multi-Input Support
+- ✍️ Manual text feedback  
+- 📁 CSV dataset upload  
+- 🎥 YouTube URL input  
 
 ---
 
-### ⚠️ Validation Rules
-
-* 📁 **Format:** Must be a valid CSV file
-* 📌 **Column Required:** Must include a `feedback` column
-* ✍️ **Content:** Column must not be empty
-* ❌ **Error Handling:** Missing column → validation error
+### 🔐 Authentication *(If Enabled)*
+- User login/signup  
+- Credit tracking  
+- Personalized experience  
 
 ---
 
+## 🏗️ Tech Stack
 
-# 🎯 Target Audience
-
-* E-commerce platforms 🛒
-* Food delivery apps 🍔
-* Banking & fintech 🏦
-* Telecom services 📞
-* SaaS companies 💻
-* Customer support teams 📊
-* surveys files also
-
----
-
-# ⚡ Performance Optimization
-
-Sentilytics uses:
-
-* Batch inference for transformers ⚡
-* Optimized pipeline execution
-* Faster bulk feedback processing
-* Reduced latency for CSV uploads
+| Layer | Technology |
+|------|-----------|
+| Frontend | React.js, Tailwind CSS |
+| Backend | Flask (Python) |
+| ML/NLP | Scikit-learn, Pandas, NumPy |
+| Visualization | Recharts / Matplotlib |
+| Database | MongoDB / MySQL |
 
 ---
 
-# ✅ Advantages
-
-✔ Automated feedback intelligence
-✔ Hinglish support 🇮🇳
-✔ Bulk + CSV processing
-✔ Real-time analytics dashboard
-✔ AI-driven recommendations
-✔ Exportable reports
-
----
-
-# 🔮 Future Scope
-
-* Topic clustering
-* Real-time alerts
-* Multilingual expansion
-* Social media integration
-* AI summarization of feedback
-* Predictive CSAT trends
-
----
-
-# 👩‍💻 Team
-
-* Ayushi Bansal
-* Tanya Goyal
-* Tanisha Tayal
-
----
-
-# 💡 Project Goal
-
-To demonstrate how **AI + NLP can convert unstructured customer feedback into actionable business intelligence at scale**.
+## ⚙️ System Architecture
