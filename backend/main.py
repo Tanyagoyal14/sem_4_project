@@ -12,9 +12,13 @@ from routes.youtube_compare import router as youtube_compare_router
 
 app = FastAPI(title="AI Feedback Intelligence System", version="9.0")
 
+default_origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
 origins = [
     origin.strip()
-    for origin in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+    for origin in os.getenv("CORS_ORIGINS", ",".join(default_origins)).split(",")
     if origin.strip()
 ]
 

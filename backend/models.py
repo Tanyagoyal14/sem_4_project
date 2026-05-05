@@ -74,10 +74,16 @@ class YouTubeCompareRequest(BaseModel):
     max_comments: int = Field(default=300, ge=200, le=500)
 
 
-class VideoSentimentStats(BaseModel):
+class VideoMetadata(BaseModel):
     title: str
     video_id: str
     url: str
+    channel_title: Optional[str] = None
+    published_at: Optional[str] = None
+    comment_count: int = 0
+
+
+class SentimentBreakdown(BaseModel):
     total_comments: int
     positive_count: int
     negative_count: int
@@ -86,21 +92,50 @@ class VideoSentimentStats(BaseModel):
     negative_percentage: float
     neutral_percentage: float
     average_sentiment_score: float
-    csat_score: int
-    most_liked_comment: str
-    most_liked_comment_likes: int
+    csat_score: float
+
+
+class CommentItem(BaseModel):
+    text: str
+    likeCount: int
+    publishedAt: Optional[str] = None
+
+
+class CategorizedComments(BaseModel):
+    positive_comments: List[CommentItem] = Field(default_factory=list)
+    negative_comments: List[CommentItem] = Field(default_factory=list)
+    neutral_comments: List[CommentItem] = Field(default_factory=list)
+
+
+class MostCommentedItem(BaseModel):
+    text: str
+    likeCount: int
+    publishedAt: Optional[str] = None
 
 
 class VideoComparePayload(BaseModel):
-    stats: VideoSentimentStats
-    keywords: List[str]
-    summary: str
+    stats: VideoMetadata
+    sentiment_breakdown: SentimentBreakdown
+    keywords: Dict[str, Any]
+    most_liked_comment: MostCommentedItem
+    most_criticized_comment: MostCommentedItem
+    user_requests: List[CommentItem] = Field(default_factory=list)
+    categorized_comments: CategorizedComments
 
 
-class CompareInsight(BaseModel):
+class KeywordComparison(BaseModel):
+    top_keywords_video1: List[str] = Field(default_factory=list)
+    top_keywords_video2: List[str] = Field(default_factory=list)
+    shared_keywords: List[str] = Field(default_factory=list)
+    distinct_keywords: Dict[str, List[str]] = Field(default_factory=dict)
+
+
+class CompareInsight(KeywordComparison):
     winner: str
-    positivity_difference: float
-    key_insights: List[str]
+    positivity_gap: float
+    insights: List[str]
+    ai_summary: str
+    keyword_prompt: Optional[str] = None
 
 
 class YouTubeCompareResponse(BaseModel):
