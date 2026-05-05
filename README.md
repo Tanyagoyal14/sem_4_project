@@ -168,11 +168,9 @@ URL → Video ID Extraction → Comment Fetching → NLP Processing → Sentimen
 
 
 📈 Flowchart
-
 <p align="center">
-  <img src="./assets/flowchart.png" alt="Sentilytics System Flowchart" width="750"/>
+  <img src="assets/flowchart.png" alt="Sentilytics Flowchart" width="750">
 </p>
-
 <p align="center">
   <i>End-to-end workflow of the Sentilytics feedback analysis pipeline</i>
 </p>
