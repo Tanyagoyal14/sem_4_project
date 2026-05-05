@@ -41,6 +41,17 @@ export const getStoredUser = (): AuthUser | null => {
   }
 }
 
+export const getStorageScopeId = () => {
+  const user = getStoredUser()
+  if (user?.id) return user.id
+  if (user?.email) return user.email
+
+  const token = getStoredToken()
+  const payload = token ? decodeJwt(token) : null
+
+  return payload?.user_id ?? payload?.sub ?? "guest"
+}
+
 export const setAuthSession = (token: string, user: AuthUser) => {
   TOKEN_KEYS.forEach((key) => localStorage.setItem(key, token))
   localStorage.setItem(USER_KEY, JSON.stringify(user))

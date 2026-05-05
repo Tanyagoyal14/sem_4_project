@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import os
 import re
 from typing import List, Optional
+from uuid import uuid4
 
 import pandas as pd
 from deep_translator import GoogleTranslator
@@ -23,7 +24,7 @@ from models import (
     FeedbackBatchInput,
     FeedbackInput,
 )
-from security import consume_user_credits, get_current_user, require_premium_user
+from security import consume_user_credits, get_current_user
 
 router = APIRouter(tags=["feedback"])
 
@@ -142,6 +143,9 @@ def build_analysis(
     texts: List[str],
     user_id: Optional[str] = None,
     credits_remaining: Optional[int] = None,
+    batch_id: Optional[str] = None,
+    batch_name: Optional[str] = None,
+    source_type: str = "manual",
 ) -> List[FeedbackAnalysisItem]:
     translated = [translate(text) for text in texts]
 
@@ -166,6 +170,9 @@ def build_analysis(
 
         document = {
             "user_id": user_id,
+            "batch_id": batch_id,
+            "batch_name": batch_name,
+            "source_type": source_type,
             "feedback": text,
             "translated_feedback": translated[index],
             "sentiment": sentiment,
@@ -180,6 +187,9 @@ def build_analysis(
             FeedbackAnalysisItem(
                 id=str(inserted.inserted_id),
                 user_id=user_id,
+                batch_id=batch_id,
+                batch_name=batch_name,
+                source_type=source_type,
                 feedback=text,
                 translated_feedback=translated[index],
                 sentiment=sentiment,
@@ -203,7 +213,7 @@ def create_feedback(
         updated_user = consume_user_credits(current_user, 1)
         remaining = int(updated_user.get("credits", 0))
         user_id = payload.user_id or str(current_user["_id"])
-        return build_analysis([payload.feedback], user_id, remaining)[0]
+        return build_analysis([payload.feedback], user_id, remaining, source_type="manual")[0]
     except PyMongoError as exc:
         raise HTTPException(status_code=503, detail=f"Database connection issue: {exc}") from exc
 
@@ -224,7 +234,7 @@ def analyze_feedback(
         updated_user = consume_user_credits(current_user, len(texts))
         remaining = int(updated_user.get("credits", 0))
         user_id = payload.user_id or str(current_user["_id"])
-        results = build_analysis(texts, user_id, remaining)
+        results = build_analysis(texts, user_id, remaining, source_type="manual")
         return {"results": results, "total": len(results), "credits_remaining": remaining}
     except PyMongoError as exc:
         raise HTTPException(status_code=503, detail=f"Database connection issue: {exc}") from exc
@@ -243,7 +253,16 @@ async def upload_csv(
         texts = df["feedback"].dropna().astype(str).tolist()
         updated_user = consume_user_credits(current_user, len(texts))
         remaining = int(updated_user.get("credits", 0))
-        results = build_analysis(texts, str(current_user["_id"]), remaining)
+        batch_id = uuid4().hex
+        batch_name = file.filename or f"csv-upload-{batch_id[:8]}.csv"
+        results = build_analysis(
+            texts,
+            str(current_user["_id"]),
+            remaining,
+            batch_id=batch_id,
+            batch_name=batch_name,
+            source_type="csv",
+        )
         return {"results": results, "total": len(results), "credits_remaining": remaining}
     except HTTPException:
         raise
@@ -252,10 +271,13 @@ async def upload_csv(
 
 
 @router.get("/feedback-history")
-def get_feedback_history(_current_user: dict = Depends(get_current_user)):
+def get_feedback_history(current_user: dict = Depends(get_current_user)):
     try:
         data = list(
-            feedback_collection.find({}, {"_id": 0}).sort("created_at", -1)
+            feedback_collection.find(
+                {"user_id": str(current_user["_id"])},
+                {"_id": 0},
+            ).sort("created_at", -1)
         )
         return {"history": jsonable_encoder(data)}
     except PyMongoError as exc:
@@ -263,8 +285,9 @@ def get_feedback_history(_current_user: dict = Depends(get_current_user)):
 
 
 @router.get("/download-weekly-report")
-def download_weekly_report(format: str = "csv", _premium_user: dict = Depends(require_premium_user)):
+def download_weekly_report(format: str = "csv", current_user: dict = Depends(get_current_user)):
     try:
+        updated_user = consume_user_credits(current_user, 15)
         last_week = datetime.utcnow() - timedelta(days=7)
         data = list(
             feedback_collection.find(

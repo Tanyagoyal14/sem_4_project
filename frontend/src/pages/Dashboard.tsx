@@ -9,9 +9,9 @@ import LiveFeed from "../components/LiveFeed"
 import AIInsights from "../components/AIInsights"
 import useFeedbackStream from "../hooks/useFeedbackStream"
 import { apiFetch } from "../utils/api"
+import { readStoredDashboardState, readStoredFeedbackStream, saveStoredDashboardState } from "../utils/feedbackStorage"
 import { getAuthCredits, getAuthRole, updateStoredCredits } from "../utils/auth"
-
-const DASHBOARD_STORAGE_KEY = "dashboard_page_state"
+import { calculateFeedbackStats, normalizeStatsItems } from "../utils/feedbackStats"
 
 type CompareHistoryItem = {
   created_at: string
@@ -25,8 +25,8 @@ type CompareHistoryItem = {
 
 const getStoredDashboardState = () => {
   try {
-    const saved = localStorage.getItem(DASHBOARD_STORAGE_KEY)
-    if (!saved) {
+    const parsed = readStoredDashboardState()
+    if (!parsed) {
       return {
         feedback: "",
         industryData: [],
@@ -34,8 +34,6 @@ const getStoredDashboardState = () => {
         results: [],
       }
     }
-
-    const parsed = JSON.parse(saved)
 
     return {
       feedback: typeof parsed.feedback === "string" ? parsed.feedback : "",
@@ -54,19 +52,36 @@ const getStoredDashboardState = () => {
   }
 }
 
+const getStoredFeedbackHistory = () => {
+  try {
+    const parsed = readStoredFeedbackStream()
+    return Array.isArray(parsed) ? normalizeStatsItems(parsed) : []
+  } catch (error) {
+    console.error("Unable to read saved dashboard feedback history:", error)
+    return []
+  }
+}
+
+const normalizeDashboardResults = (items: any[], source: "manual" | "csv", batchId?: string) =>
+  normalizeStatsItems(items).map((item: any) => ({
+    ...item,
+    source,
+    batchId: item.batchId || item.batch_id || batchId,
+  }))
+
 function Dashboard() {
   const navigate = useNavigate()
-  const { stream, addFeedback } = useFeedbackStream()
+  const { addFeedback } = useFeedbackStream()
   const storedState = getStoredDashboardState()
-
   const [feedback, setFeedback] = useState(storedState.feedback)
   const [industryData, setIndustryData] = useState<any[]>(storedState.industryData)
   const [csat, setCsat] = useState(storedState.csat)
-  const [results, setResults] = useState<any[]>(storedState.results)
+  const [results, setResults] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [upgradeMessage, setUpgradeMessage] = useState("")
   const [compareHistory, setCompareHistory] = useState<CompareHistoryItem[]>([])
   const [compareHistoryLoading, setCompareHistoryLoading] = useState(false)
+  const [historyStatsSource, setHistoryStatsSource] = useState<any[]>([])
 
   useEffect(() => {
     if (getAuthRole() === "free" && getAuthCredits() === 0) {
@@ -75,15 +90,12 @@ function Dashboard() {
   }, [])
 
   useEffect(() => {
-    localStorage.setItem(
-      DASHBOARD_STORAGE_KEY,
-      JSON.stringify({
-        feedback,
-        industryData,
-        csat,
-        results,
-      })
-    )
+    saveStoredDashboardState({
+      feedback,
+      industryData,
+      csat,
+      results,
+    })
   }, [feedback, industryData, csat, results])
 
   useEffect(() => {
@@ -109,27 +121,57 @@ function Dashboard() {
     loadCompareHistory()
   }, [])
 
+  const loadDashboardHistory = async () => {
+    try {
+      const res = await apiFetch("/feedback-history")
+      if (!res.ok) {
+        setHistoryStatsSource(getStoredFeedbackHistory())
+        return
+      }
+
+      const data = await res.json()
+      const remoteHistory = normalizeStatsItems(Array.isArray(data.history) ? data.history : [])
+      const localHistory = getStoredFeedbackHistory()
+      setHistoryStatsSource(remoteHistory.length > 0 ? remoteHistory : localHistory)
+    } catch (error) {
+      console.error("Unable to load dashboard history stats:", error)
+      setHistoryStatsSource(getStoredFeedbackHistory())
+    }
+  }
+
+  useEffect(() => {
+    loadDashboardHistory()
+
+    const interval = setInterval(loadDashboardHistory, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
   const feedbackList = useMemo(
-    () => stream.map((item) => item.feedback || item.text).filter(Boolean),
-    [stream]
+    () => {
+      if (results.length > 0) {
+        return results.map((item) => item.feedback).filter(Boolean)
+      }
+
+      if (historyStatsSource.length > 0) {
+        return historyStatsSource.map((item) => item.feedback || item.text).filter(Boolean)
+      }
+
+      return []
+    },
+    [results, historyStatsSource]
   )
 
   const stats = useMemo(() => {
-    const total = stream.length
-    const positive = stream.filter(
-      (item) => String(item.sentiment || "").toLowerCase() === "positive"
-    ).length
-    const negative = stream.filter(
-      (item) => String(item.sentiment || "").toLowerCase() === "negative"
-    ).length
-    const averageCsat = results.length > 0
-      ? Math.round(
-          results.reduce((sum, item) => sum + Number(item.csat_score || 0), 0) / results.length
-        )
-      : csat
+    const sourceItems = historyStatsSource
+    const calculated = calculateFeedbackStats(sourceItems)
 
-    return { total, positive, negative, csat: averageCsat }
-  }, [stream, results, csat])
+    return {
+      total: calculated.total,
+      positive: calculated.positive,
+      negative: calculated.negative,
+      csat: calculated.csat || csat,
+    }
+  }, [results, historyStatsSource, csat])
 
   const analyze = async () => {
     if (!feedback.trim()) return
@@ -160,7 +202,10 @@ function Dashboard() {
       }
 
       const data = await res.json()
-      const resultList = data.results || []
+      const resultList = normalizeDashboardResults(
+        Array.isArray(data.results) ? data.results : [],
+        "manual"
+      )
 
       if (typeof data.credits_remaining === "number") {
         updateStoredCredits(data.credits_remaining)
@@ -183,6 +228,7 @@ function Dashboard() {
       })
 
       setFeedback("")
+      await loadDashboardHistory()
     } catch (error) {
       console.error("Error:", error)
     }
@@ -214,7 +260,12 @@ function Dashboard() {
       }
 
       const data = await res.json()
-      const resultList = data.results || []
+      const fallbackBatchId = String(Date.now())
+      const resultList = normalizeDashboardResults(
+        Array.isArray(data.results) ? data.results : [],
+        "csv",
+        fallbackBatchId
+      )
 
       if (typeof data.credits_remaining === "number") {
         updateStoredCredits(data.credits_remaining)
@@ -235,6 +286,7 @@ function Dashboard() {
       resultList.forEach((item: any) => {
         addFeedback(item.feedback, item.sentiment)
       })
+      await loadDashboardHistory()
     } catch (error) {
       console.error("CSV Error:", error)
     }
@@ -410,7 +462,7 @@ Payment failed`}
           whileInView={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <LiveFeed stream={stream} />
+          <LiveFeed stream={historyStatsSource} />
         </motion.div>
       </div>
 

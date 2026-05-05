@@ -5,7 +5,7 @@ from db import profile_collection
 from models import ProfileModel
 from security import normalize_email
 
-router = APIRouter(tags=["profile"])
+router = APIRouter(prefix="/profile", tags=["profile"])
 
 
 @router.post("/save-profile")

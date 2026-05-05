@@ -1,13 +1,32 @@
 from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
+import re
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+PASSWORD_REQUIREMENTS_MESSAGE = (
+    "Password must be at least 8 characters long and include letters, numbers, "
+    "and a special character."
+)
 
 
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     role: Literal["free", "premium"] = "free"
+
+    @field_validator("password")
+    @classmethod
+    def validate_password_strength(cls, value: str) -> str:
+        if len(value) < 8:
+            raise ValueError(PASSWORD_REQUIREMENTS_MESSAGE)
+        if not re.search(r"[A-Za-z]", value):
+            raise ValueError(PASSWORD_REQUIREMENTS_MESSAGE)
+        if not re.search(r"\d", value):
+            raise ValueError(PASSWORD_REQUIREMENTS_MESSAGE)
+        if not re.search(r"[^A-Za-z0-9]", value):
+            raise ValueError(PASSWORD_REQUIREMENTS_MESSAGE)
+        return value
 
 
 class LoginRequest(BaseModel):
@@ -28,6 +47,10 @@ class AuthResponse(BaseModel):
     user: UserPublic
     access_token: Optional[str] = None
     token_type: Optional[str] = "bearer"
+
+
+class DeductCreditsRequest(BaseModel):
+    amount: int = Field(gt=0)
 
 
 class ProfileModel(BaseModel):
@@ -52,6 +75,9 @@ class FeedbackBatchInput(BaseModel):
 class FeedbackAnalysisItem(BaseModel):
     id: str
     user_id: Optional[str] = None
+    batch_id: Optional[str] = None
+    batch_name: Optional[str] = None
+    source_type: Optional[str] = "manual"
     feedback: str
     translated_feedback: Optional[str] = None
     sentiment: str

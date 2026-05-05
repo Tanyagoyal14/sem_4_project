@@ -24,6 +24,7 @@ function Login() {
   const [mode, setMode] = useState<"login" | "signup">("login")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -109,15 +110,31 @@ function Login() {
 
           <div>
             <label className="mb-2 block text-sm text-slate-300">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400"
-              placeholder="Enter your password"
-              required
-              minLength={8}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full rounded-2xl border border-white/10 bg-black/30 px-4 py-3 pr-24 text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-400"
+                placeholder="Enter your password"
+                required
+                minLength={8}
+                pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$"
+                title="Password must be at least 8 characters and include letters, numbers, and a special character."
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((value) => !value)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full px-3 py-1 text-xs font-semibold text-cyan-300 transition hover:bg-white/10 hover:text-cyan-200"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+            {mode === "signup" && (
+              <p className="mt-2 text-xs text-slate-400">
+                Use at least 8 characters with letters, numbers, and a special character.
+              </p>
+            )}
           </div>
 
           {error && (

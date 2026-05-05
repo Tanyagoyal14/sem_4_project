@@ -71,7 +71,7 @@ function Landing(){
 
       {/* 🚀 HERO */}
       <div
-        className={`relative text-center max-w-3xl pt-50 transition-opacity duration-1000 ${
+        className={`relative text-center max-w-3xl pt-2 transition-opacity duration-1000 ${
           showContent ? "opacity-100" : "opacity-0"
         }`}
       >

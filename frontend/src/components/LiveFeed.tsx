@@ -94,12 +94,12 @@ const initials = (message: string) =>
 
 function LiveFeed({ stream }: LiveFeedProps) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-[#08121a]/70 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+    <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-white/10 bg-[#08121a]/70 p-5 text-white shadow-[0_24px_70px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(168,85,247,0.18),transparent_32%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.15),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(34,197,94,0.12),transparent_26%)]" />
       <div className="pointer-events-none absolute inset-[1px] rounded-[15px] border border-white/10 bg-white/[0.03] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]" />
       <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-transparent shadow-[0_0_0_1px_rgba(168,85,247,0.08),0_0_30px_rgba(59,130,246,0.12)]" />
 
-      <div className="relative z-10">
+      <div className="relative z-10 flex h-full flex-col">
         <div className="mb-5">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold tracking-[0.22em] text-white/55">
@@ -120,7 +120,7 @@ function LiveFeed({ stream }: LiveFeedProps) {
           </p>
         </div>
 
-        <div className="space-y-3">
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-2">
           {stream.map((item: LiveFeedItem, index: number) => {
             const message = item.feedback || item.text || "New feedback received"
             const meta = sentimentMeta(item.sentiment)

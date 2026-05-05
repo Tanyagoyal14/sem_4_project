@@ -3,17 +3,32 @@ import { motion } from "framer-motion"
 import { useLocation } from "react-router-dom"
 import IndustryPieChart from "../components/IndustryPieChart"
 import { apiFetch } from "../utils/api"
+import { calculateFeedbackStats, normalizeStatsItems } from "../utils/feedbackStats"
+
+const matchesSelectedIndustry = (item: any, selectedIndustry?: string) => {
+  if (!selectedIndustry) return true
+
+  return (
+    item.industry === selectedIndustry ||
+    item.feedback_type === selectedIndustry ||
+    Array.isArray(item.top_industries) &&
+      item.top_industries.some((entry: any) =>
+        entry.industry === selectedIndustry || entry.name === selectedIndustry
+      )
+  )
+}
 
 function Analytics() {
   const location = useLocation()
   const selectedIndustry = location.state?.selectedIndustry
 
   const [history, setHistory] = useState<any[]>([])
-  const [csat, setCsat] = useState(0)
-  const totalFeedback = history.length
-  const positiveFeedback = history.filter((item: any) => item.sentiment === "Positive").length
-  const negativeFeedback = history.filter((item: any) => item.sentiment === "Negative").length
-  const neutralFeedback = history.filter((item: any) => item.sentiment === "Neutral").length
+  const stats = calculateFeedbackStats(history)
+  const totalFeedback = stats.total
+  const positiveFeedback = stats.positive
+  const negativeFeedback = stats.negative
+  const neutralFeedback = stats.neutral
+  const csat = stats.csat
   const positiveShare = totalFeedback > 0 ? Math.round((positiveFeedback / totalFeedback) * 100) : 0
   const negativeShare = totalFeedback > 0 ? Math.round((negativeFeedback / totalFeedback) * 100) : 0
 
@@ -21,29 +36,18 @@ function Analytics() {
     const fetchData = async () => {
       try {
         const res = await apiFetch("/feedback-history")
-        const data = await res.json()
-
-        if (!data || !data.history) {
+        if (!res.ok) {
           setHistory([])
           return
         }
 
-        let filtered = data.history
-
-        if (selectedIndustry) {
-          filtered = filtered.filter((item: any) =>
-            item.industry === selectedIndustry ||
-            item.feedback_type === selectedIndustry ||
-            Array.isArray(item.top_industries) &&
-              item.top_industries.some((entry: any) => entry.industry === selectedIndustry)
-          )
-        }
+        const data = await res.json()
+        const remoteHistory = normalizeStatsItems(Array.isArray(data?.history) ? data.history : [])
+        const filtered = remoteHistory.filter((item: any) =>
+          matchesSelectedIndustry(item, selectedIndustry)
+        )
 
         setHistory(filtered)
-
-        const positive = filtered.filter((item: any) => item.sentiment === "Positive").length
-        const total = filtered.length
-        setCsat(total > 0 ? Math.round((positive / total) * 100) : 0)
       } catch (error) {
         console.error("Analytics error:", error)
         setHistory([])
