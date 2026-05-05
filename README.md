@@ -155,7 +155,15 @@ Credits are deducted
 🎥 YouTube Processing Pipeline
 URL → Video ID Extraction → Comment Fetching → NLP Processing → Sentiment Output
 
-<p align="center"> <img src="assets/flowchart.png" alt="Sentilytics Flowchart" width="750"> </p> <p align="center"> <i>End-to-end workflow of the Sentilytics feedback analysis pipeline</i> </p>
+## 📈 System Flowchart
+
+<p align="center">
+  <img src="assets/flowchart.png" width="750"/>
+</p>
+
+<p align="center">
+  <i>End-to-end workflow of the Sentilytics feedback analysis pipeline</i>
+</p>
 
 👨‍💻 Team Members
 Ayushi Bansal
