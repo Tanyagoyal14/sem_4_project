@@ -108,3 +108,100 @@ A built-in usage control mechanism:
 ---
 
 ## ⚙️ System Architecture
+
+User Input → Preprocessing → ML Model → Prediction → Visualization → Credit Deduction
+
+---
+
+## 📂 Project Structure
+sem_4_project/
+│
+├── backend/
+│ ├── app.py
+│ ├── model/
+│ ├── utils/
+│
+├── frontend/
+│ ├── components/
+│ ├── pages/
+│
+├── dataset/
+├── README.md
+
+---
+
+## ⚙️ Installation & Setup
+
+1️⃣ Clone Repository
+```bash
+git clone https://github.com/Tanyagoyal14/sem_4_project.git
+cd sem_4_project
+
+2️⃣ Backend Setup
+cd backend
+pip install -r requirements.txt
+python app.py
+
+3️⃣ Frontend Setup
+cd frontend
+npm install
+npm run dev
+
+🔄 How It Works
+User provides input (text / dataset / YouTube URL)
+Data is cleaned and preprocessed
+ML model predicts sentiment
+Results are visualized
+Credits are deducted
+💳 Credit System – Deep Dive
+Each user starts with predefined credits
+Every operation consumes credits
+Ensures fair usage and system efficiency
+
+Future Scope:
+
+Subscription model
+Credit recharge system
+Tier-based access
+🎥 YouTube Processing Pipeline
+URL → Video ID Extraction → Comment Fetching → NLP Processing → Sentiment Output
+
+
+📈 Flowchart
+
+<p align="center">
+  <img src="./assets/flowchart.png" alt="Sentilytics System Flowchart" width="750"/>
+</p>
+
+<p align="center">
+  <i>End-to-end workflow of the Sentilytics feedback analysis pipeline</i>
+</p>
+
+
+👨‍💻 Team Members
+Ayushi Bansal
+Tanya Goyal
+Tanisha Tayal
+
+🔮 Future Enhancements
+🤖 Transformer models (BERT, LLMs)
+🌐 Full cloud deployment (Vercel + AWS)
+📊 Advanced analytics & reporting
+📱 Mobile-first UI
+🔔 Smart alerts & notifications
+
+📜 License
+
+This product is developed for academic and learning purposes.
+
+💡 Acknowledgements
+Scikit-learn
+React.js
+Open-source community
+
+
+📬 Contact
+GitHub: https://github.com/Ayushibansal805, https://github.com/Tanyagoyal14
+
+<p align="center"> ⭐ If you found this project useful, consider giving it a star! </p> ```
+
