@@ -85,7 +85,7 @@ It helps businesses, educators, and developers **understand feedback at scale** 
 
 ---
 
-### 🔐 Authentication *(If Enabled)*
+### 🔐 Authentication 
 - User login/signup  
 - Credit tracking  
 - Personalized usage  
@@ -143,6 +143,7 @@ python app.py
 cd frontend
 npm install
 npm run dev
+'''
 
 🔄 How It Works
 User provides input (text / dataset / YouTube URL)
