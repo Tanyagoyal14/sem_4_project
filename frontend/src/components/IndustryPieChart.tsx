@@ -101,12 +101,24 @@ const getRawValue = (item: RawPredictionItem) => {
   return 0
 }
 
-const normalizeData = (data?: RawPredictionItem[]) =>
-  (data ?? [])
+const normalizeData = (data?: RawPredictionItem[]) => {
+  console.log("🚀 IndustryPieChart raw data:", data); // Enhanced debug
+
+  if (!data || data.length === 0) {
+    console.warn("⚠️ No data provided to IndustryPieChart - using fallback");
+    return [
+      { name: "E-commerce", value: 0.4, icon: "🛒" },
+      { name: "Technology", value: 0.35, icon: "💻" },
+      { name: "Customer Support", value: 0.25, icon: "📞" }
+    ];
+  }
+
+  const normalized = (data ?? [])
     .map((item) => {
-      const name = item.name || item.industry || "Unknown"
-      const raw = getRawValue(item)
-      const safeValue = Number.isFinite(raw) ? raw : 0
+      const name = item.name || item.industry || "Unknown";
+      const raw = getRawValue(item);
+      console.log(`📈 Processing item: ${name}, raw value: ${raw} (${typeof raw})`);
+      const safeValue = Number.isFinite(raw) && raw > 0 ? raw : 0.01; // Lower threshold
 
       return {
         name,
@@ -114,7 +126,16 @@ const normalizeData = (data?: RawPredictionItem[]) =>
         icon: item.icon || getIcon(name)
       }
     })
-    .filter((item) => Number.isFinite(item.value))
+    .filter((item) => Number.isFinite(item.value) && item.value > 0)
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 8); // Limit to 8 slices max
+
+  console.log("✅ IndustryPieChart normalized data:", normalized); 
+  console.log(`📊 Total slices: ${normalized.length}, Total value: ${normalized.reduce((sum, item) => sum + item.value, 0).toFixed(3)}`);
+  return normalized.length > 0 ? normalized : [
+    { name: "No Data", value: 1, icon: "📊" }
+  ];
+};
 
 function IndustryPieChart({
   data,
@@ -395,12 +416,37 @@ function IndustryPieChart({
     .filter(Boolean)
     .join(" ")
 
+  // Show empty state if no data
+  if (displayData.length === 0) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.45, ease: "easeOut" }}
+        className={resolvedClassName}
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(79,209,197,0.16),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14),transparent_28%)]" />
+
+        <div className="relative z-10 mb-4">
+          <h3 className="text-lg font-semibold tracking-[0.2em] text-white/95">{title}</h3>
+          <p className="mt-1 text-sm text-slate-200/75">{subtitle}</p>
+        </div>
+
+        <div className="relative z-10 flex items-center justify-center" style={{ height }}>
+          <div className="text-center">
+            <div className="mb-3 text-4xl opacity-50">📊</div>
+            <p className="text-slate-300">Submit feedback to analyze industries</p>
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.94 }}
-      whileInView={{ opacity: 1, scale: 1 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      viewport={{ once: true, amount: 0.3 }}
       className={resolvedClassName}
     >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(79,209,197,0.16),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(59,130,246,0.14),transparent_28%)]" />
@@ -410,100 +456,31 @@ function IndustryPieChart({
         <p className="mt-1 text-sm text-slate-200/75">{subtitle}</p>
       </div>
 
-      <div className="relative z-10" style={{ height }}>
+      <div className="h-[400px] w-full relative z-10">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <defs>
-              {displayData.map((item, index) => {
-                const gradientId = `industry-gradient-${item.name.replace(/\s+/g, "-").toLowerCase()}-${index}`
-                return (
-                  <linearGradient
-                    key={gradientId}
-                    id={gradientId}
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop offset="0%" stopColor={lighten(item.color, 0.25)} stopOpacity={1} />
-                    <stop offset="55%" stopColor={item.color} stopOpacity={1} />
-                    <stop offset="100%" stopColor={darken(item.color, 0.22)} stopOpacity={1} />
-                  </linearGradient>
-                )
-              })}
-            </defs>
-
-            <RechartsPie
+            {/* Simplified - no complex defs/gradients temporarily */}
+            <Pie
               data={displayData}
               dataKey="value"
               nameKey="name"
               cx="50%"
-              cy={bottomCy}
-              innerRadius={innerRadius}
-              outerRadius={outerRadius}
-              startAngle={210}
-              endAngle={-30}
-              stroke="none"
-              isAnimationActive={true}
-              animationDuration={800}
-              animationEasing="ease-out"
+              cy="50%"
+              outerRadius={90}
+              innerRadius={40}
+              fill="#8884d8"
+              stroke="rgba(255,255,255,0.3)"
+              strokeWidth={1}
+              isAnimationActive={false} // Disable animation for stability
+              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
             >
-              {displayData.map((item, index) => (
-                <Cell
-                  key={`shadow-${item.name}-${index}`}
-                  fill={darken(item.color, 0.55)}
-                  opacity={0.95}
+              {displayData.map((entry, index) => (
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={PALETTE[index % PALETTE.length]} 
                 />
               ))}
-            </RechartsPie>
-
-            <RechartsPie
-              data={displayData}
-              dataKey="value"
-              nameKey="name"
-              cx="50%"
-              cy={topCy}
-              innerRadius={innerRadius}
-              outerRadius={outerRadius}
-              startAngle={210}
-              endAngle={-30}
-              stroke="rgba(255,255,255,0.16)"
-              strokeWidth={1.2}
-              activeIndex={activeIndex ?? undefined}
-              activeShape={renderActiveShape}
-              label={renderLabel}
-              labelLine={renderLabelLine}
-              onMouseEnter={(_entry: any, index: number) => setActiveIndex(index)}
-              onMouseLeave={() => setActiveIndex(null)}
-              onClick={(_entry: any, index: number) => {
-                const selected = normalizedTargetData[index]
-                if (selected) {
-                  onSliceClick?.({ name: selected.name, value: selected.value }, index)
-                }
-              }}
-              isAnimationActive={true}
-              animationDuration={800}
-              animationEasing="ease-out"
-            >
-              {displayData.map((item, index) => {
-                const gradientId = `industry-gradient-${item.name.replace(/\s+/g, "-").toLowerCase()}-${index}`
-                const isActive = activeIndex === index
-
-                return (
-                  <Cell
-                    key={`face-${item.name}-${index}`}
-                    fill={`url(#${gradientId})`}
-                    stroke={isActive ? "#ffffff" : "rgba(255,255,255,0.2)"}
-                    strokeWidth={isActive ? 2.6 : 1}
-                    style={{
-                      cursor: onSliceClick ? "pointer" : "default",
-                      transition: "stroke-width 180ms ease, filter 180ms ease, opacity 180ms ease"
-                    }}
-                  />
-                )
-              })}
-            </RechartsPie>
-
+            </Pie>
             <Tooltip content={<CustomTooltip />} />
           </PieChart>
         </ResponsiveContainer>

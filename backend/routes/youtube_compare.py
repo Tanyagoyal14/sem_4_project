@@ -61,7 +61,7 @@ REQUEST_KEYWORDS = ("please", "make", "improve", "add", "need", "want")
 CUSTOM_STOPWORDS = {"sir", "khan", "video", "please", "channel"}
 TOKEN_PATTERN = re.compile(r"[a-zA-Z0-9']+")
 
-_sentiment_analyzer: SentimentIntensityAnalyzer | None = None
+_sentiment_analyzer: Optional[Any] = None
 
 
 class _FallbackSentimentAnalyzer:

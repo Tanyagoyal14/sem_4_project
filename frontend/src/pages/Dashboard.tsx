@@ -444,17 +444,13 @@ Payment failed`}
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, scale: 0.85 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6 }}
         >
           <IndustryPieChart
-  data={industryData.filter(
-    (item) =>
-      item &&
-      typeof item.value === "number" &&
-      !isNaN(item.value)
-  )}
-/>
+            data={industryData}
+          />
+
         </motion.div>
 
         <motion.div

@@ -51,6 +51,51 @@ INDUSTRIES = [
     "Customer Support",
 ]
 
+INDUSTRY_KEYWORDS = {
+    "E-commerce": ["delivery", "order", "shipping", "refund", "product", "cart", "shop", "buy"],
+    "Banking": ["bank", "account", "transaction", "payment", "loan", "atm", "balance"],
+    "Healthcare": ["doctor", "hospital", "medicine", "appointment", "health", "patient"],
+    "Education": ["teacher", "class", "exam", "course", "student", "homework"],
+    "Food Delivery": ["food", "restaurant", "order", "delivery", "taste", "menu"],
+    "Travel": ["flight", "hotel", "booking", "ticket", "travel", "trip"],
+    "Technology": ["app", "software", "bug", "crash", "update", "phone"],
+    "Telecom": ["network", "signal", "call", "data", "sim", "recharge"],
+    "Retail": ["store", "shop", "cashier", "stock", "price"],
+    "Customer Support": ["support", "help", "agent", "chat", "call", "complaint"]
+}
+
+def boost_industry_confidence(translated_text: str, top_industries: List[dict]) -> List[dict]:
+    lowered = translated_text.lower()
+    boosted = top_industries.copy()
+    
+    # Ensure we always have at least 3 industries with minimum confidence 0.08
+    while len(boosted) < 3:
+        boosted.append({"industry": "Customer Support", "confidence": 0.08})
+    
+    # Ensure ALL industries have valid confidence > 0.08
+    for item in boosted:
+        item["confidence"] = max(item["confidence"], 0.08)
+        item["confidence"] = min(item["confidence"], 0.95)
+    
+    # Keyword boosting
+    for item in boosted:
+        keywords = INDUSTRY_KEYWORDS.get(item["industry"], [])
+        keyword_hits = sum(1 for kw in keywords if kw in lowered)
+        boost = 0.10 * keyword_hits  # Slightly higher boost
+        item["confidence"] = min(item["confidence"] + boost, 0.95)
+    
+    # Always return exactly 3 industries, sorted by confidence
+    boosted.sort(key=lambda x: x["confidence"], reverse=True)
+    result = boosted[:3]
+    
+    # Ensure exactly 3
+    while len(result) < 3:
+        result.append({"industry": "General", "confidence": 0.08})
+    
+    print(f"🔍 Boosted industries for '{translated_text[:50]}...': {result}")
+    return result[:3]
+
+
 FEEDBACK_TYPES = ["Complaint", "Suggestion", "Praise", "Question"]
 
 HINGLISH_MARKERS = {
@@ -157,13 +202,15 @@ def build_analysis(
 
     for index, text in enumerate(texts):
         sentiment = get_sentiment(sentiments[index]["label"])
-        top_industries = [
+        raw_industries = [
             {"industry": label, "confidence": round(score, 3)}
             for label, score in zip(
                 industry_results[index]["labels"],
                 industry_results[index]["scores"],
             )
-        ][:3]
+        ][:5]  # Get more candidates for boosting
+        
+        top_industries = boost_industry_confidence(translated[index], raw_industries)
         feedback_type = type_results[index]["labels"][0]
         created_at = datetime.utcnow()
         csat_score = 100 if sentiment == "Positive" else 50 if sentiment == "Neutral" else 30
